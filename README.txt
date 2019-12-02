@@ -1,0 +1,1 @@
+This is a learn directory of git
