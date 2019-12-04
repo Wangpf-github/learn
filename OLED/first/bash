@@ -1,0 +1,18 @@
+#!bash/sh
+
+export LD_LIBRARY_PATH=/lib
+
+echo 198 > /sys/class/gpio/export
+echo 135 > /sys/class/gpio/export
+
+himm 0x120F0164 0
+himm 0x120F01E8 0x1
+
+echo out > /sys/class/gpio/gpio135/direction
+echo 1 > /sys/class/gpio/gpio135/value
+
+echo out > /sys/class/gpio/gpio198/direction
+echo 1 > /sys/class/gpio/gpio198/value
+echo 0 > /sys/class/gpio/gpio198/value
+echo 1 > /sys/class/gpio/gpio198/value
+
