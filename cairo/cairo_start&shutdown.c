@@ -10,7 +10,7 @@ int drawing_start()
     cairo_t *cr2 = 
         cairo_create(surface);
 
-    cairo_select_font_face(cr1, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);  //设置字体族，倾斜，加粗
+    cairo_select_font_face(cr1, "cursive", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);  //设置字体样式，倾斜，加粗
     cairo_select_font_face(cr2, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr1, 20.0);
     cairo_set_font_size(cr2, 13.0);
