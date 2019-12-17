@@ -11,6 +11,71 @@ https://lanhuapp.com/url/oYjz4-IDmaK
 头文件名：anywhere_gtk.h
 每个模式一个C文件（4个文件）
 
+typedef struct _AwGtkPrivate
+{
+    guint camera_mode;   //开机时显示开机画面，完成后进入显示拍照页面，关机显示关机页面
+    guint work_mode;  //对应工作模式，对应拍照、录像、直播和设置
+    
+    guint jpeg_mode;  //对应拍照状态显示和设置两个状态
+    guint jpeg_setting_mode; //对应拍照设置的各个选项
+    gboolean jpeg_shoot_entry;  //进入拍照设置模式
+    guint jpeg_shoot_mode;  //拍照模式， 对应标准和连拍
+    gboolean jpeg_raw_entry;  //进入raw设置命令
+    gboolean jpeg_raw_mode;  //对应RAW的开关模式
+    gboolean jpeg_continue_interval_entry;
+    guint jpeg_continue_interval_mode;
+    gboolean jpeg_expo_entry;
+
+    guint mp4_mode;  //对应录像模式显示和设置两个状态
+    guint mp4_setting_mode;
+    gboolean mp4_resolution_entry;   //进入分辨率设置
+    guint mp4_resolution_mode;
+    gboolean mp4_bitrate_entry;   //进入码率设置
+    guint mp4_bitrate_mode;
+    gboolean mp4_fps_entry;   //进入帧率设置
+    guint mp4_fps_mode;
+    gboolean mp4_separate_entey;   //进入分段间隔设置
+    guint mp4_separate_mode;
+    gboolean mp4_expo_entry;
+
+    guint live_mode;      //对应显示状态和设置两个模式
+    guint live_setting_mode;
+    gboolean live_resolution_entry;
+    guint live_resolution_mode;
+    gboolean live_bitrate_entry;
+    guint live_bitrate_mode;
+    gboolean live_fps_entry;
+    guint live_fps_mode;
+    gboolean live_protocol_entry;
+    guint live_protocol_mode;
+    gboolean live_expo_entry;
+
+    guint sys_setting_mode;
+    gboolean sys_wifi_entry;
+    guint sys_wifi_mode;
+    gboolean sys_led_entry;
+    gboolean sys_led_mode;
+    gboolean sys_lan_entry;
+    guint sys_lan_mode;
+    gboolean sys_ssd_used_entry;    //进入磁盘使用情况选项
+    GString sys_ssd_used;
+    gboolean sys_ssd_clean_entry;    //清除磁盘选
+    gboolean sys_edition_entry;
+    guint sys_edition_mode;
+    gboolean sys_about_entry;
+
+    /* 以下为设置曝光属性和状态的成员,拍照、录像、直播共用曝光模式 */
+    guint expo_mode;  //对应拍照模式的曝光模式
+    gboolean expo_auto_entry;
+    guint expo_auto_mode;  //自动模式两种状态
+    gboolean expo_manual_entry;
+    guint expo_manual_mode;
+    gboolean expo_shutter_entry;
+    guint expo_shutter_mode;
+    gboolean expo_iso_entry;
+    guint expo_iso_mode;
+}AwGtkPrivate;
+
 黄：T 绿：R 蓝：G
 
 界面层级变化和同层状态变化
@@ -18,6 +83,7 @@ https://lanhuapp.com/url/oYjz4-IDmaK
 开机：拍照：拍照状态：显示信息
           拍照设置：拍摄模式：标准/连拍
                   Raw:开/关
+                  连拍间隔：1/5s,1/3s,1s,3s,5s,10s
                   曝光设置：自动：  ios：Auto，<100，<200，<400，<800，<1600
                                   快门：Auto，>1/3200，>1/1000，>1/500，>1/100，>1/50，>1/30，>1/15
                           手动：  ios：Auto，100，200，400，800，1600
@@ -41,7 +107,7 @@ https://lanhuapp.com/url/oYjz4-IDmaK
                                   快门：Auto，>1/3200，>1/1000，>1/500，>1/100，>1/50，>1/30，>1/15
      直播：直播显示：显示信息
           直播设置：分辨率：选中后单击切换分辨率，4K、6K、8K循环
-                  码率：选中后单击切换码率，5M，10M，15M，30M，40M，50M， 60M
+                  码率：选中后单击切换码率，5M，10M，15M，30M，40M，50M，60M
                   帧率：根据当前所选分辨率，单击进行切换
                   协议：可以切换支持的协议
                   曝光设置：自动：  ios：Auto，<100，<200，<400，<800，<1600
@@ -60,8 +126,19 @@ https://lanhuapp.com/url/oYjz4-IDmaK
              重置：还原设置到出厂状态（后续）
              频闪修正：切换选择对应的频率，自动或者关闭（后续）
              固件更新：开机时，如果网络可用，检测是否有新固件，如果有新固件时，提示客户是否升级。客户可以选择立即
-             升级，跳过该版本，或者暂时不升级。在系统设置里，保留一个检查固件更新的选项，可以用于手动检测。
+                     升级，跳过该版本，或者暂时不升级。在系统设置里，保留一个检查固件更新的选项，可以用于手动检测。
              语言：切换系统中英文显示（后续，先做成英文即可）
              关于：显示相机的设备编号，固件版本号
 
+页面选择：开机，关机，拍照显示，拍照设置1，拍照设置2，拍照设置-模式，拍照设置-raw，拍照设置-连拍间隔1，拍照设置-连拍间隔2，
+                  录像显示，录像设置1，录像设置2，录像设置-分辨率，录像设置-码率，录像设置-帧率，录像设置-分段，
+                  直播显示，直播设置1，直播设置2，直播设置-分辨率，直播设置-码率，直播设置-帧率，直播设置-协议，
+                  系统设置1，系统设置wifi，系统设置 ...
 
+页面选中项：
+
+导航栏：状态（网络，ip，电量），拍照，录像，直播，系统设置
+
+曝光：曝光1，曝光2，曝光手动，曝光自动，曝光快门优先，曝光iso优先，曝光数值设置，曝光iso设置1，曝光iso设置2，曝光快门设置1，曝光快门设置2，曝光快门设置3
+
+控制方式：页面选择+页面内选中项（曝光页面显示时，代码读当前模式）+每个选项的数据存储（单独记录）

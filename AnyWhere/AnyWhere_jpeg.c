@@ -732,7 +732,6 @@ gint show_jpeg_state()
 gint show_jpeg(GtkWidget *widget, gpointer data)
 {
     gchar IP_buf[100] = {0};
-    gchar IP_addr[20] = {0};
     GtkWidget *window;
     GtkWidget *button;
     GtkWidget *header_box;
