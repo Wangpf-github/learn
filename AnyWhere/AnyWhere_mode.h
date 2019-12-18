@@ -5,16 +5,6 @@
 #include <string.h>
 #include <glib.h>
 
-enum JPEG_CONTINUE_INTERVAL
-{
-    JPEG_INTERVAL_D5,
-    JPEG_INTERVAL_D3,
-    JPEG_INTERVAL_1,
-    JPEG_INTERVAL_3,
-    JPEG_INTERVAL_5,
-    JPEG_INTERVAL_10
-}
-
 enum MP4_SEPARATE
 {
     MP4_SEPARATE_10,

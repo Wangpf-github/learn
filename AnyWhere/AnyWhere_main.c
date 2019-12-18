@@ -1,6 +1,5 @@
 #include "AnyWhere_GTK.h"
 
-/* 进入系统为开机界面然后跳转到拍照模式 */
 G_DEFINE_TYPE(AwGtk, aw_gtk, G_TYPE_OBJECT);
 
 #define AW_GTK_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), AW_TYPE_GTK, AwGtkPrivate)
@@ -76,18 +75,91 @@ static void aw_gtk_init(AwGtk *self)
 
 }
 
-static void judge_intergace()
+static void judge_interface()
 {
     guint value;
     g_object_get(GOBJECT(entry), "interface", &value, NULL);
-    if(JPEG_ENTRY == value)
+
+    switch (value)
     {
+    case :
+        ;
+        break;
+    case JPEG_ENTRY:
         show_jpeg();
-    }
-    else if(CAMERA_SHUTDOWN == value)
-    {
+        break;
+    case JPEG_STATE:
+        show_jpeg_state();
+        break;
+    case JPEG_SETTING_1:
+        show_jpeg_setting1();
+        break;
+    case JPEG_SETTING_SHOOT:
+        show_jpeg_shoot_setting();
+        break;
+    case MP4_ENTRY:
+        show_mp4();
+        break;
+    case MP4_STATE:
+        show_mp4_state();
+        break;
+    case MP4_SETTING_1:
+        show_mp4_setting1();
+        break;
+    case MP4_SETTING_2:
+        show_mp4_setting2();
+        break;
+    case MP4_SETTING_SEPARATE:
+        show_mp4_setting_separate();
+        break;
+    case LIVE_ENTRY:
+        show_live();
+        break;
+    case LIVE_STATE:
+        show_live_state();
+        break;
+    case LIVE_SETTING_1:
+        show_live_setting1();
+        break;
+    case LIVE_SETTING_2:
+        show_live_setting2();
+        break;
+    case LIVE_SETTING_RESOLUTION:
+        show_live_setting_resolution();
+        break;
+    case LIVE_SETTING_BITRATE:
+        show_live_setting_bitrate();
+        break;
+    case LIVE_SETTING_FRAMERATE:
+        show_live_setting_framerate();
+        break;
+    case LIVE_SETTING_PROTOCOL:
+        show_live_setting_protocol();
+        break;
+    case SYS_SETTING_1:
+        show_sys_setting1();
+        break;
+    case SYS_SETTING_WIFI:
+        show_sys_setting_wifi();
+        break;
+    case SYS_SETTING_LED:
+        show_sys_setting_led();
+        break;
+
+    case CAMERA_SHUTDOWN:
         OLED_SHUTDOWN();
+        break;
+    
+    default:
+        break;
     }
+}
+
+void judge_interface_select()
+{
+    guint value;
+    g_object_get(GOBJECT(entry), "interface", &value, NULL);
+    g_object_set(GOBJECT(entry), "interface", value, NULL);
 }
 
 gint OLED_START()
@@ -105,8 +177,8 @@ gint OLED_START()
     g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    g_signal_connect (entry, "notify::interface", G_CALLBACK(judge_intergace), NULL);     //采用信号机制，收到信号调用show_jpeg_mode
-
+    g_signal_connect (entry, "notify::interface", G_CALLBACK(judge_interface), NULL);     //采用信号机制，收到信号调用show_jpeg_mode
+    g_signal_connect (entry, "notify::interface_select", G_CALLBACK(judge_interface_select), NULL);
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);     //创建新盒子，第二个参数为单元格之间的间隙，即控件之间的间隔大小，一般为0
     gtk_container_add(GTK_CONTAINER(window),vbox);
      

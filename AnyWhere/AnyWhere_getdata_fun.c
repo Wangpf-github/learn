@@ -94,3 +94,20 @@ gint get_live_bitrate_val()
 {
     
 }
+
+gchar *get_jpeg_space_string()
+{
+
+}
+
+gchar *get_work_time_string(gint work_mode)
+{
+    if(WORKMODE_MP4 == work_mode)
+    {
+
+    }
+    else if(WORKMODE_LIVE == work_mode)
+    {
+        
+    }
+}
