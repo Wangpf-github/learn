@@ -107,14 +107,31 @@ void change_title(GtkWidget *widget, gpointer data)
     g_object_set(G_OBJECT (entry), "title", "wang", NULL);
 }
 
+void show_label()
+{
+    gchar buf[100] = {0};
+    GtkWidget *window;
+    GtkWidget *label;
+    window = gtk_window_new(GTK_WINDOW_POPUP);
+    gtk_window_set_title(GTK_WINDOW(window), "AnyWhere");
+    g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    label = gtk_label_new("hahahahaha");   //加载图片的路径
+
+    gtk_container_add(GTK_CONTAINER(window), label);
+
+    sprintf(buf, "<span foreground='red' font_desc='8'>%s</span>","aa");
+    gtk_label_set_markup(GTK_LABEL(label), buf);
+
+    gtk_widget_show_all(window);
+}
+
 void title_change(GtkWidget *widget, gpointer data)
 {
     g_print("title changed,hahaha!\n");
-}
-
-void author_change(GtkWidget *widget, gpointer data)
-{
-    g_print("author changed!\n");
+//    sleep(2);
+    show_label();
 }
 
 int main(int argc, char *argv[])
@@ -129,12 +146,15 @@ int main(int argc, char *argv[])
                                         NULL); 
     gchar *title, *author, *publisher;
     guint year;
+    guint my_year = 2019;
+    g_object_set(G_OBJECT (entry),"year", my_year, NULL);
     g_object_get (G_OBJECT (entry),
                           "title", &title,
                           "author", &author,
                          "publisher", &publisher,
                           "year", &year,
                          NULL);
+    
     g_print ("    Title: %s\n" "   Author: %s\n" "Publisher: %s\n" "     Year: %d\n", title, author, publisher, year);
     GtkWidget *window;
     GtkWidget *label;
