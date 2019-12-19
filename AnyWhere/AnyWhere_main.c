@@ -72,7 +72,7 @@ static void aw_gtk_class_init(AwGtkClass *kclass)
 
 static void aw_gtk_init(AwGtk *self)
 {
-
+    g_socket_new ();
 }
 
 static void judge_interface()
@@ -130,8 +130,14 @@ static void judge_interface()
     case LIVE_SETTING_RESOLUTION:
         show_live_setting_resolution();
         break;
-    case LIVE_SETTING_BITRATE:
-        show_live_setting_bitrate();
+    case LIVE_SETTING_BITRATE_1:
+        show_live_setting_bitrate1();
+        break;
+    case LIVE_SETTING_BITRATE_2:
+        show_live_setting_bitrate2();
+        break;
+    case LIVE_SETTING_BITRATE_3:
+        show_live_setting_bitrate3();
         break;
     case LIVE_SETTING_FRAMERATE:
         show_live_setting_framerate();
@@ -176,7 +182,7 @@ gint OLED_START()
 
     gtk_init(NULL, NULL);
     g_type_init();
-    entry = g_object_new(AW_TYPE_GTK, "interface", 0, "interface_select", 1, NULL);
+    entry = g_object_new(AW_TYPE_GTK, "interface", 0, "interface_select", 0, NULL);
 
     window = gtk_window_new(GTK_WINDOW_POPUP);
     gtk_window_set_title(GTK_WINDOW(window), "AnyWhere");

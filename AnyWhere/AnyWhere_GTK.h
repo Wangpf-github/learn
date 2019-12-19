@@ -48,7 +48,9 @@ enum INTERFACE
     LIVE_SETTING_1,
     LIVE_SETTING_2,
     LIVE_SETTING_RESOLUTION,
-    LIVE_SETTING_BITRATE,
+    LIVE_SETTING_BITRATE_1,
+    LIVE_SETTING_BITRATE_2,
+    LIVE_SETTING_BITRATE_3,
     LIVE_SETTING_FRAMERATE,
     LIVE_SETTING_PROTOCOL,
 #if 0
@@ -67,7 +69,7 @@ enum INTERFACE
     SYS_ENTRY,
     SYS_SETTING_1,        //系统设置主页1
     SYS_SETTING_WIFI,
-    SYS_SETTING_LED,
+    SYS_SETTING_LED
 };
 
 enum INTERFACE_SELECT
@@ -128,9 +130,9 @@ typedef struct _StateData
     JPEGData jpeg_data;
     MP4Data mp4_data;
     LiveData live_data;
-    guint expo_mode;
-    guint expo_iso_mode;
-    guint expo_shutter_mode;
+//    guint expo_mode;
+//    guint expo_iso_mode;
+//    guint expo_shutter_mode;
     SysSetting sys_setting;
 }StateData;
 StateData state_data = {0};
@@ -176,7 +178,9 @@ gint show_live_state();
 gint show_live_setting1();
 gint show_live_setting2();
 gint show_live_setting_resolution();
-gint show_live_setting_bitrate();
+gint show_live_setting_bitrate1();
+gint show_live_setting_bitrate2();
+gint show_live_setting_bitrate3();
 gint show_live_setting_framerate();
 gint show_live_setting_protocol();
 

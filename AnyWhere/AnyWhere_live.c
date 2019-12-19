@@ -94,7 +94,9 @@ gint show_live_state()
     //创建状态标签,第三行显示信息
     label_state = gtk_label_new("status");
     gtk_widget_set_size_request(label_state, 120, 15);
-    sprintf(buf_state, "<span foreground='black' font_desc='12'>8K 30PFS 100Mb</span>");  //修改label的字体大小，颜色等，可加下划线等
+    sprintf(buf_state, "<span foreground='black' font_desc='12'>%dK 30PFS %dMb</span>", 
+                                                             get_live_resolution_val(), 
+                                                             get_live_bitrate_val());
     gtk_label_set_markup(GTK_LABEL(label_state), buf_state);
     gtk_box_pack_start(GTK_BOX(vbox), label_state, FALSE, FALSE, 0);
 
@@ -135,10 +137,10 @@ gint show_live_setting1()
     //创建三个标签
     label_resolution = gtk_label_new("resolution");
     gtk_widget_set_size_request(label_resolution, 85, 15);
-    sprintf(reso_buf, "<span foreground='black' font_desc='10'>Resolution:8K</span>");  
+    sprintf(reso_buf, "<span foreground='black' font_desc='10'>Resolution:%dK</span>", get_live_resolution_val());  
     label_bitrate = gtk_label_new("bitrate");
     gtk_widget_set_size_request(label_bitrate, 85, 15);
-    sprintf(bit_buf, "<span foreground='black' font_desc='10'>BitRate:100Mbps</span>");  
+    sprintf(bit_buf, "<span foreground='black' font_desc='10'>BitRate:%dMbps</span>", get_live_bitrate_val());  
     label_framerate = gtk_label_new("framerate");
     gtk_widget_set_size_request(label_framerate, 85, 15);
     sprintf(frame_buf, "<span foreground='black' font_desc='10'>FrameRate:30FPS</span>"); 
@@ -159,7 +161,7 @@ gint show_live_setting1()
     gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_resolution, 2);
     gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_bitrate, 3);
     gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_framerate, 4);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 4);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 5);
 
     switch (value)
     {
@@ -171,11 +173,11 @@ gint show_live_setting1()
         gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
         break;
     case SELECT_FIRST:
-        sprintf(reso_buf, "<span foreground='white' font_desc='10'>Resolution:8K</span>");  
+        sprintf(reso_buf, "<span foreground='white' font_desc='10'>Resolution:%dK</span>", get_live_resolution_val());  
         gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_resolution));
         break;
     case SELECT_SECOND:
-        sprintf(bit_buf, "<span foreground='white' font_desc='10'>BitRate:100Mbps</span>");  
+        sprintf(bit_buf, "<span foreground='white' font_desc='10'>BitRate:%dMbps</span>", get_live_bitrate_val());  
         gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_bitrate));
         break;
     case SELECT_THIRD:
@@ -196,25 +198,413 @@ gint show_live_setting1()
 
 gint show_live_setting2()
 {
+    guint value;
+    gchar pro_buf[100] = {0};
+    GtkWidget *window;
+    GtkWidget *image;
+    GtkWidget *label_protocol;
+    GtkWidget *listbox;
+    GtkWidget *row_image_head;
+    GtkWidget *row_label_protocol;
+    GtkWidget *row_spare;
 
+    guint value;
+    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
+
+    //创建底图
+    window = gtk_window_new(GTK_WINDOW_POPUP);
+    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    //创建一个listbox
+    listbox = gtk_list_box_new();
+    gtk_container_add(GTK_CONTAINER(window), listbox);
+    //插入表头图片
+    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_NO));
+    //创建三个标签
+    label_protocol = gtk_label_new("protocol");
+    gtk_widget_set_size_request(label_protocol, 85, 15);
+    sprintf(pro_buf, "<span foreground='black' font_desc='10'>Protocol:RTSP</span>");  
+    
+    //创建row，将标签和图片插入row中
+    row_image_head = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_image_head), image);
+    row_label_protocol = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_protocol), label_protocol);
+    row_spare = gtk_list_box_row_new();
+    
+    //将row插入到listbox中
+    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_protocol, 2);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 3);
+
+    switch (value)
+    {
+    case SELECT_NONE:
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
+        break;
+    case SELECT_HEAD:
+        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_YES));
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
+        break;
+    case SELECT_FIRST:
+        sprintf(pro_buf, "<span foreground='white' font_desc='10'>Protocol:RTSP</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_protocol));
+        break;
+
+    default:
+        break;
+    }
+    gtk_label_set_markup(GTK_LABEL(label_protocol), pro_buf);
+
+    gtk_widget_show_all(window);
+    return FALSE;
 }
 
-gint show_live_setting_resolution()
+gint show_live_setting_resolution()     //直播模式分辨率选择页面
 {
+    guint value;
+    gchar buf_4k[100] = {0};
+    gchar buf_6k[100] = {0};
+    gchar buf_8k[100] = {0};
+    GtkWidget *window;
+    GtkWidget *image;
+    GtkWidget *label_4k;
+    GtkWidget *label_6k;
+    GtkWidget *label_8k;
+    GtkWidget *listbox;
+    GtkWidget *row_image_head;
+    GtkWidget *row_label_4k;
+    GtkWidget *row_label_6k;
+    GtkWidget *row_label_8k;
+    GtkWidget *row_spare;
 
+    guint value;
+    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
+
+    //创建底图
+    window = gtk_window_new(GTK_WINDOW_POPUP);
+    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    //创建一个listbox
+    listbox = gtk_list_box_new();
+    gtk_container_add(GTK_CONTAINER(window), listbox);
+    //插入表头图片
+    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_NO));
+    //创建三个标签
+    label_4k = gtk_label_new("4k");
+    gtk_widget_set_size_request(label_4k, 85, 15);
+    sprintf(buf_4k, "<span foreground='black' font_desc='10'>Resolution:4K</span>");  
+    label_6k = gtk_label_new("6k");
+    gtk_widget_set_size_request(label_6k, 85, 15);
+    sprintf(buf_6k, "<span foreground='black' font_desc='10'>Resolution:6K</span>");  
+    label_8k = gtk_label_new("8k");
+    gtk_widget_set_size_request(label_8k, 85, 15);
+    sprintf(buf_8k, "<span foreground='black' font_desc='10'>Resolution:8K</span>"); 
+    
+    //创建row，将标签和图片插入row中
+    row_image_head = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_image_head), image);
+    row_label_4k = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_4k), label_4k);
+    row_label_6k = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_6k), label_6k);
+    row_label_8k = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_8k), label_8k);
+    row_spare = gtk_list_box_row_new();
+    
+    //将row插入到listbox中
+    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_4k, 2);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_6k, 3);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_8k, 4);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 5);
+
+    switch (value)
+    {
+    case SELECT_NONE:
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
+        break;
+    case SELECT_HEAD:
+        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_YES));
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
+        break;
+    case SELECT_FIRST:
+        sprintf(buf_4k, "<span foreground='white' font_desc='10'>Resolution:4K</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_4k));
+        break;
+    case SELECT_SECOND:
+        sprintf(buf_6k, "<span foreground='white' font_desc='10'>Resolution:6K</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_6k));
+        break;
+    case SELECT_THIRD:
+        sprintf(buf_8k, "<span foreground='white' font_desc='10'>Resolution:8K</span>"); 
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_8k));
+        break;
+    
+    default:
+        break;
+    }
+    gtk_label_set_markup(GTK_LABEL(label_4k), buf_4k);
+    gtk_label_set_markup(GTK_LABEL(label_6k), buf_6k);
+    gtk_label_set_markup(GTK_LABEL(label_8k), buf_8k);  
+
+    gtk_widget_show_all(window);
+    return FALSE;
 }
 
-gint show_live_setting_bitrate()
+gint show_live_setting_bitrate1()
 {
+    guint value;
+    gchar buf_1[100] = {0};
+    gchar buf_2[100] = {0};
+    gchar buf_3[100] = {0};
+    GtkWidget *window;
+    GtkWidget *image;
+    GtkWidget *label_1;
+    GtkWidget *label_2;
+    GtkWidget *label_3;
+    GtkWidget *listbox;
+    GtkWidget *row_image_head;
+    GtkWidget *row_label_1;
+    GtkWidget *row_label_2;
+    GtkWidget *row_label_3;
+    GtkWidget *row_spare;
 
+    guint value;
+    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
+
+    //创建底图
+    window = gtk_window_new(GTK_WINDOW_POPUP);
+    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    //创建一个listbox
+    listbox = gtk_list_box_new();
+    gtk_container_add(GTK_CONTAINER(window), listbox);
+    //插入表头图片
+    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_NO));
+    //创建三个标签
+    label_1 = gtk_label_new("5M");
+    gtk_widget_set_size_request(label_1, 85, 15);
+    sprintf(buf_1, "<span foreground='black' font_desc='10'>BitRate:5M</span>");  
+    label_2 = gtk_label_new("10M");
+    gtk_widget_set_size_request(label_2, 85, 15);
+    sprintf(buf_2, "<span foreground='black' font_desc='10'>BitRate:10M</span>");  
+    label_3 = gtk_label_new("15M");
+    gtk_widget_set_size_request(label_3, 85, 15);
+    sprintf(buf_3, "<span foreground='black' font_desc='10'>BitRate:15M</span>"); 
+    
+    //创建row，将标签和图片插入row中
+    row_image_head = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_image_head), image);
+    row_label_1 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_1), label_1);
+    row_label_2 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_2), label_2);
+    row_label_3 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_3), label_3);
+    row_spare = gtk_list_box_row_new();
+    
+    //将row插入到listbox中
+    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_1, 2);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_2, 3);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_3, 4);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 5);
+
+    switch (value)
+    {
+    case SELECT_NONE:
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
+        break;
+    case SELECT_HEAD:
+        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_YES));
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
+        break;
+    case SELECT_FIRST:
+        sprintf(buf_1, "<span foreground='white' font_desc='10'>BitRate:5M</span>");  
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_1));
+        break;
+    case SELECT_SECOND:
+        sprintf(buf_2, "<span foreground='white' font_desc='10'>BitRate:10M</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_2));
+        break;
+    case SELECT_THIRD:
+        sprintf(buf_3, "<span foreground='white' font_desc='10'>BitRate:15M</span>"); 
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_3));
+        break;
+    
+    default:
+        break;
+    }
+    gtk_label_set_markup(GTK_LABEL(label_1), buf_1);
+    gtk_label_set_markup(GTK_LABEL(label_2), buf_2);
+    gtk_label_set_markup(GTK_LABEL(label_3), buf_3);  
+
+    gtk_widget_show_all(window);
+    return FALSE;
+}
+
+gint show_live_setting_bitrate2()
+{
+    guint value;
+    gchar buf_1[100] = {0};
+    gchar buf_2[100] = {0};
+    gchar buf_3[100] = {0};
+    GtkWidget *window;
+    GtkWidget *image;
+    GtkWidget *label_1;
+    GtkWidget *label_2;
+    GtkWidget *label_3;
+    GtkWidget *listbox;
+    GtkWidget *row_image_head;
+    GtkWidget *row_label_1;
+    GtkWidget *row_label_2;
+    GtkWidget *row_label_3;
+    GtkWidget *row_spare;
+
+    guint value;
+    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
+
+    //创建底图
+    window = gtk_window_new(GTK_WINDOW_POPUP);
+    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    //创建一个listbox
+    listbox = gtk_list_box_new();
+    gtk_container_add(GTK_CONTAINER(window), listbox);
+    //插入表头图片
+    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_NO));
+    //创建三个标签
+    label_1 = gtk_label_new("30M");
+    gtk_widget_set_size_request(label_1, 85, 15);
+    sprintf(buf_1, "<span foreground='black' font_desc='10'>BitRate:30M</span>");  
+    label_2 = gtk_label_new("40M");
+    gtk_widget_set_size_request(label_2, 85, 15);
+    sprintf(buf_2, "<span foreground='black' font_desc='10'>BitRate:40M</span>");  
+    label_3 = gtk_label_new("50M");
+    gtk_widget_set_size_request(label_3, 85, 15);
+    sprintf(buf_3, "<span foreground='black' font_desc='10'>BitRate:50M</span>"); 
+    
+    //创建row，将标签和图片插入row中
+    row_image_head = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_image_head), image);
+    row_label_1 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_1), label_1);
+    row_label_2 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_2), label_2);
+    row_label_3 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_3), label_3);
+    row_spare = gtk_list_box_row_new();
+    
+    //将row插入到listbox中
+    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_1, 2);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_2, 3);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_3, 4);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 5);
+
+    switch (value)
+    {
+    case SELECT_NONE:
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
+        break;
+    case SELECT_HEAD:
+        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_YES));
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
+        break;
+    case SELECT_FIRST:
+        sprintf(buf_1, "<span foreground='white' font_desc='10'>BitRate:30M</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_1));
+        break;
+    case SELECT_SECOND:
+        sprintf(buf_2, "<span foreground='white' font_desc='10'>BitRate:40M</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_2));
+        break;
+    case SELECT_THIRD:
+        sprintf(buf_3, "<span foreground='white' font_desc='10'>BitRate:50M</span>"); 
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_3));
+        break;
+    
+    default:
+        break;
+    }
+    gtk_label_set_markup(GTK_LABEL(label_1), buf_1);
+    gtk_label_set_markup(GTK_LABEL(label_2), buf_2);
+    gtk_label_set_markup(GTK_LABEL(label_3), buf_3);  
+
+    gtk_widget_show_all(window);
+    return FALSE;
+}
+
+gint show_live_setting_bitrate3()
+{
+    guint value;
+    gchar buf_1[100] = {0};
+    GtkWidget *window;
+    GtkWidget *image;
+    GtkWidget *label_1;
+    GtkWidget *listbox;
+    GtkWidget *row_image_head;
+    GtkWidget *row_label_1;
+    GtkWidget *row_spare;
+
+    guint value;
+    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
+
+    //创建底图
+    window = gtk_window_new(GTK_WINDOW_POPUP);
+    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    //创建一个listbox
+    listbox = gtk_list_box_new();
+    gtk_container_add(GTK_CONTAINER(window), listbox);
+    //插入表头图片
+    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_NO));
+    //创建三个标签
+    label_1 = gtk_label_new("60M");
+    gtk_widget_set_size_request(label_1, 85, 15);
+    sprintf(buf_1, "<span foreground='black' font_desc='10'>BitRate:60M</span>");  
+    
+    //创建row，将标签和图片插入row中
+    row_image_head = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_image_head), image);
+    row_label_1 = gtk_list_box_row_new();
+    gtk_container_add(GTK_CONTAINER(row_label_1), label_1);
+    row_spare = gtk_list_box_row_new();
+    
+    //将row插入到listbox中
+    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_1, 2);
+    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 5);
+
+    switch (value)
+    {
+    case SELECT_NONE:
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
+        break;
+    case SELECT_HEAD:
+        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_LIVE, SELECT_YES));
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
+        break;
+    case SELECT_FIRST:
+        sprintf(buf_1, "<span foreground='white' font_desc='10'>BitRate:60M</span>");
+        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_1));
+        break;
+    default:
+        break;
+    }
+    gtk_label_set_markup(GTK_LABEL(label_1), buf_1);
+
+    gtk_widget_show_all(window);
+    return FALSE;
 }
 
 gint show_live_setting_framerate()
 {
-
+    return FALSE;
 }
 
 gint show_live_setting_protocol()
 {
-
+    return FALSE;
 }
