@@ -41,7 +41,8 @@ enum INTERFACE
 //    MP4_SETTING_RESOLUTION,  //一期只有8K
 //    MP4_SETTING_BITRATE,     //只有100Mb
 //    MP4_SETTING_FRAMERATE,   //只有30FP
-    MP4_SETTING_SEPARATE,
+    MP4_SETTING_SEPARATE_1,
+    MP4_SETTING_SEPARATE_2,
     LIVE_ENTRY,
     LIVE_STATE,
     LIVE_SETTING_1,
@@ -63,6 +64,7 @@ enum INTERFACE
     EXPO_SHUTTER_SETTING_2,
     EXPO_SHUTTER_SETTING_3,
 #endif     //关于曝光调节，一期不做
+    SYS_ENTRY,
     SYS_SETTING_1,        //系统设置主页1
     SYS_SETTING_WIFI,
     SYS_SETTING_LED,
@@ -89,7 +91,7 @@ typedef struct _JPEGData
     guint jpeg_disk_space;
     guint jpeg_shoot_mode;
     guint jpeg_raw_mode;
-    gchar jpeg_continue_interval[8];   //前端输入连拍间隔
+    guint jpeg_continue_interval[8];   //前端输入连拍间隔
 }JPEGData;
 
 typedef struct _MP4Data
@@ -131,14 +133,16 @@ typedef struct _StateData
     guint expo_shutter_mode;
     SysSetting sys_setting;
 }StateData;
-StateData state_data;
+StateData state_data = {0};
 
 /* 获取显示信息函数 */
 gchar *get_network_image_url();
 gchar *get_battery_image_url();
-gchar *get_work_mode_image_url();     //获取设置模式时导航栏的图片路径
-gchar *get_expo_iso_string(gint expo_mode);
-gchar *get_expo_shutter_string(gint expo_mode);
+gchar *get_work_mode_image_big_url(gint work_mode);
+gchar *get_work_mode_image_sel_url(gint work_mode, gint select_mode);     //获取设置模式时导航栏的图片路径
+gchar *get_state_mode_image_url(gint work_mode);
+//gchar *get_expo_iso_string(gint expo_mode);
+//gchar *get_expo_shutter_string(gint expo_mode);
 gchar *get_wifi_mode_string();
 gcahr *get_jpeg_continue_interval_string();   //连拍模式的拍照时间间隔
 gchar *get_mp4_separate_string();
@@ -146,6 +150,10 @@ gint get_live_resolution_val();
 gint get_live_bitrate_val();
 gchar *get_jpeg_space_string();
 gchar *get_work_time_string(gint work_mode);
+gchar *get_jpeg_shoot_string();    //获取拍照模式
+gchar *get_setting_wifi_mode();
+gchar *get_setting_led_mode();
+gchar *get_setting_lan_mode();
 
 /* 显示页面函数 */
 gint show_jpeg();
@@ -160,7 +168,8 @@ gint show_mp4();
 gint show_mp4_state();
 gint show_mp4_setting1();
 gint show_mp4_setting2();
-gint show_mp4_setting_separate();
+gint show_mp4_setting_separate1();
+gint show_mp4_setting_separate2();
 
 gint show_live();
 gint show_live_state();
@@ -171,6 +180,7 @@ gint show_live_setting_bitrate();
 gint show_live_setting_framerate();
 gint show_live_setting_protocol();
 
+gint show_system();
 gint show_sys_setting1();
 gint show_sys_setting_wifi();
 gint show_sys_setting_led();

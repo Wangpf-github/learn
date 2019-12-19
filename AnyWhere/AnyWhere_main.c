@@ -109,8 +109,11 @@ static void judge_interface()
     case MP4_SETTING_2:
         show_mp4_setting2();
         break;
-    case MP4_SETTING_SEPARATE:
-        show_mp4_setting_separate();
+    case MP4_SETTING_SEPARATE_1:
+        show_mp4_setting_separate1();
+        break;
+    case MP4_SETTING_SEPARATE_2:
+        show_mp4_setting_separate2();
         break;
     case LIVE_ENTRY:
         show_live();
@@ -135,6 +138,9 @@ static void judge_interface()
         break;
     case LIVE_SETTING_PROTOCOL:
         show_live_setting_protocol();
+        break;
+    case SYS_ENTRY:
+        show_system();
         break;
     case SYS_SETTING_1:
         show_sys_setting1();

@@ -55,7 +55,17 @@ gchar *get_battery_image_url()
     }
 }
 
-gchar *get_work_mode_image_url()
+gchar *get_work_mode_image_big_url(gint work_mode)
+{
+
+}
+
+gchar *get_work_mode_image_sel_url(gint work_mode, gint select_mode)
+{
+
+}
+
+gchar *get_state_mode_image_url(gint work_mode)
 {
 
 }
@@ -108,6 +118,26 @@ gchar *get_work_time_string(gint work_mode)
     }
     else if(WORKMODE_LIVE == work_mode)
     {
-        
+
     }
+}
+
+gchar *get_jpeg_shoot_string()
+{
+    
+}
+
+gchar *get_setting_wifi_mode()
+{
+
+}
+
+gchar *get_setting_led_mode()
+{
+
+}
+
+gchar *get_setting_lan_mode()
+{
+    
 }

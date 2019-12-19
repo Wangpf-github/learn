@@ -11,70 +11,14 @@ https://lanhuapp.com/url/oYjz4-IDmaK
 头文件名：anywhere_gtk.h
 每个模式一个C文件（4个文件）
 
-typedef struct _AwGtkPrivate
-{
-    guint camera_mode;   //开机时显示开机画面，完成后进入显示拍照页面，关机显示关机页面
-    guint work_mode;  //对应工作模式，对应拍照、录像、直播和设置
-    
-    guint jpeg_mode;  //对应拍照状态显示和设置两个状态
-    guint jpeg_setting_mode; //对应拍照设置的各个选项
-    gboolean jpeg_shoot_entry;  //进入拍照设置模式
-    guint jpeg_shoot_mode;  //拍照模式， 对应标准和连拍
-    gboolean jpeg_raw_entry;  //进入raw设置命令
-    gboolean jpeg_raw_mode;  //对应RAW的开关模式
-    gboolean jpeg_continue_interval_entry;
-    guint jpeg_continue_interval_mode;
-    gboolean jpeg_expo_entry;
-
-    guint mp4_mode;  //对应录像模式显示和设置两个状态
-    guint mp4_setting_mode;
-    gboolean mp4_resolution_entry;   //进入分辨率设置
-    guint mp4_resolution_mode;
-    gboolean mp4_bitrate_entry;   //进入码率设置
-    guint mp4_bitrate_mode;
-    gboolean mp4_fps_entry;   //进入帧率设置
-    guint mp4_fps_mode;
-    gboolean mp4_separate_entey;   //进入分段间隔设置
-    guint mp4_separate_mode;
-    gboolean mp4_expo_entry;
-
-    guint live_mode;      //对应显示状态和设置两个模式
-    guint live_setting_mode;
-    gboolean live_resolution_entry;
-    guint live_resolution_mode;
-    gboolean live_bitrate_entry;
-    guint live_bitrate_mode;
-    gboolean live_fps_entry;
-    guint live_fps_mode;
-    gboolean live_protocol_entry;
-    guint live_protocol_mode;
-    gboolean live_expo_entry;
-
-    guint sys_setting_mode;
-    gboolean sys_wifi_entry;
-    guint sys_wifi_mode;
-    gboolean sys_led_entry;
-    gboolean sys_led_mode;
-    gboolean sys_lan_entry;
-    guint sys_lan_mode;
-    gboolean sys_ssd_used_entry;    //进入磁盘使用情况选项
-    GString sys_ssd_used;
-    gboolean sys_ssd_clean_entry;    //清除磁盘选
-    gboolean sys_edition_entry;
-    guint sys_edition_mode;
-    gboolean sys_about_entry;
-
-    /* 以下为设置曝光属性和状态的成员,拍照、录像、直播共用曝光模式 */
-    guint expo_mode;  //对应拍照模式的曝光模式
-    gboolean expo_auto_entry;
-    guint expo_auto_mode;  //自动模式两种状态
-    gboolean expo_manual_entry;
-    guint expo_manual_mode;
-    gboolean expo_shutter_entry;
-    guint expo_shutter_mode;
-    gboolean expo_iso_entry;
-    guint expo_iso_mode;
-}AwGtkPrivate;
+fixed = gtk_fixed_new();
+gtk_widget_set_usize(fixed,150,150);
+button1 = gtk_button_new_with_label("按钮一");
+gtk_fixed_put(GTK_FIXED(fixed),button1,5,5);
+button2 = gtk_button_new_with_label("按钮二");
+gtk_fixed_put(GTK_FIXED(fixed),button2,55,55);
+button3 = gtk_button_new_with_label("按钮三");
+gtk_fixed_put(GTK_FIXED(fixed),button3,105,105);
 
 黄：T 绿：R 蓝：G
 
