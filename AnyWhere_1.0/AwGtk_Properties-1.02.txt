@@ -1,0 +1,52 @@
+  guint    interface;                #画面切换：  0.开机状态
+                                                 1.关机
+                                                 2.拍照模式主页面
+                                                 3.拍照状态显示页面
+                                                 4.拍照设置页面
+                                                 5.视频模式主页面
+                                                 6.视频状态显示页面
+                                                 7.视频设置页面
+                                                 8.直播模式主页面
+                                                 9.直播状态显示页面
+                                                 10.直播设置页面
+                                                 11.系统设置主页面
+                                                 12.系统设置页面
+  GList    *jpeg_list;              #拍照模式设置列表
+  GList    *MP4_list;               #视频模式设置项列表
+  GList    *live_list;              #直播模式设置项列表
+  GList    *system_list;            #系统设置项列表
+   gint    interface_select;         #选中反色项切换：-1.选择导航栏
+                                                   0.选择列表第一项
+                                                   1.选择列表第二项
+                                                   2.选择列表第三项
+                                                  ...
+  guint    network_mode;            #网络工作模式：  0.有线网络
+                                                   1.无线网络
+  gchar    *IPaddr;                 #当前IP地址
+  guint    battery;                 #电池电量：      0.低于5%
+                                                   1.10%
+                                                   2.20%
+                                                   3.40%
+                                                   4.60%
+                                                   5.80%
+                                                   6.100%
+                                                   7.充电20
+                                                   ...
+  gchar    *jpeg_disk_space_3;         #拍照模式，还能拍照的数量
+  gchar    *jpeg_resolution_3;         #拍照模式分辨率，按照设计，只在状态显示页面使用
+  gchar    *jpeg_shoot_mode_3;         #拍照模式：标准/连拍
+  gchar    *jpeg_format_3;             #照片存储格式，一期只有JPEG，后面加入DNG
+  gchar    *jpeg_interval;             #连拍间隔
+
+  gchar    *mp4_work_time_6;           #录像模式工作时长
+  gchar    *mp4_resolution_6;          #录像模式分辨率：8K
+  gchar    *mp4_bitrate_6;             #录像模式码率：100Mb
+  gchar    *mp4_framerate_6;           #录像模式帧率：30PFS
+
+  gchar    *live_work_time_9;          #直播模式工作时间
+  gchar    *live_resolution_9;         #直播模式分辨率：4K/6K/8K
+  gchar    *live_bitrate_9;            #直播模式码率：5M/10M/15M/30M/40M/50M/60M
+  gchar    *live_framerate_9;          #直播模式帧率： 15FPS/20FPS/25FPS/30PFS/60FPS
+
+  gchar    *image_url;               #图片加载的路径
+  
