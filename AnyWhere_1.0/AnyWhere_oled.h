@@ -80,7 +80,7 @@ enum INTERFACE
     LIVE_STATE,
     LIVE_SETTING,
     SYS_MAIN,
-    SYS_SETTING,            //系统设置主页1
+    SYS_SETTING            //系统设置主页1
 };
 
 enum INTERFACE_SELECT

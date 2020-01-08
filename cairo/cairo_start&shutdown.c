@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include "/usr/include/cairo/cairo.h"
+#include <cairo.h>
+//#include "/usr/include/cairo/cairo.h"
 
 int drawing_start()
 {

@@ -1,5 +1,11 @@
 //编译：gcc first_gtk.c -o first_gtk `pkg-config --libs --cflags gtk+-3.0`
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
+#include <glib.h>
+#include <glib/gprintf.h>
+#include <stdlib.h>
+#include <string.h>
+#include <gdk/gdkkeysyms.h>
 
 int show_jpeg_mode(GtkWidget *widget, gpointer data);
 int show_mp4_mode(GtkWidget *widget, gpointer data);
@@ -24,7 +30,6 @@ int show_jpeg_mode(GtkWidget *widget, gpointer data)
 
     button = gtk_button_new_with_label ("select");
     g_signal_connect (G_OBJECT (button), "clicked", G_CALLBACK (show_mp4_mode), "1");
-    g_signal_connect (G_OBJECT (button), "clicked", G_CALLBACK (gtk_widget_destroy), "1");
     gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, FALSE, 0);
   
     label_IPaddr = gtk_label_new("192.168.100.100");
@@ -37,8 +42,8 @@ int show_jpeg_mode(GtkWidget *widget, gpointer data)
 
 int show_mp4_mode(GtkWidget *widget, gpointer data)
 {
-    char buf[100] = {0};
-    static int last_num = 95;
+    gchar buf[100] = {0};
+    static guint last_num = 95;
     GtkWidget *window;
     GtkWidget *button;
     GtkWidget *header_box;
@@ -68,21 +73,20 @@ int show_mp4_mode(GtkWidget *widget, gpointer data)
 
     //创建事件盒子并加入vbox
     event_box = gtk_event_box_new();
-    GdkRGBA color;
-    color.red = 0;
-    color.green = 0;
-    color.blue = 0;
-    color.alpha = 1;
-    gtk_widget_override_background_color(event_box, GTK_STATE_FLAG_NORMAL, &color);     //修改事件box背景
+    GdkRGBA event_bg_color;
+    event_bg_color.red = 100;
+    event_bg_color.green = 100;
+    event_bg_color.blue = 100;
+//    event_bg_color.alpha = 1;
+    gtk_widget_override_background_color(event_box, GTK_STATE_FLAG_NORMAL, &event_bg_color);     //修改事件box背景
     gtk_box_pack_start(GTK_BOX(header_box), event_box, FALSE, FALSE, 0);
 
     //创建标签并加入事件box
     label_IPaddr = gtk_label_new("192.168.100.100");
-    gtk_widget_set_size_request(label_IPaddr,70,10);
-    sprintf(buf, "<span foreground='white' font_desc='8'>192.168.100.%d</span>", last_num);  //修改label的字体大小，颜色等，可加下划线等
+    gtk_widget_set_size_request(label_IPaddr,85,20);
+    sprintf(buf, "<span foreground='black' font_desc='8'>192.168.100.%d</span>", last_num);  //修改label的字体大小，颜色等，可加下划线等
     last_num++;
     gtk_label_set_markup(GTK_LABEL(label_IPaddr), buf);  
-    gtk_widget_set_size_request(label_IPaddr, 84, 20);
     gtk_container_add(GTK_CONTAINER(event_box), label_IPaddr);
 
     //创建电池图片窗口并加入hbox
@@ -131,7 +135,7 @@ int main(int argc, char* argv[])
     gtk_container_add(GTK_CONTAINER(window),vbox);
 
     button = gtk_button_new_with_label ("select");
-    g_signal_connect (G_OBJECT (button), "clicked", G_CALLBACK (show_jpeg_mode), "1");     //采用信号机制，收到信号调用show_jpeg_mode
+    g_signal_connect (G_OBJECT (button), "clicked", G_CALLBACK(show_mp4_mode), NULL);     //采用信号机制，收到信号调用show_jpeg_mode
 //    g_signal_connect (G_OBJECT (button), "clicked", G_CALLBACK (gtk_widget_hide), "1");
     gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, FALSE, 0);
      

@@ -1,314 +1,193 @@
 #include "AnyWhere_GTK.h"
 
-gint show_jpeg_shoot_setting()    //拍照模式，单拍或者连拍
+gint show_jpeg_setting()  //包含拍照模式，连拍间隔，采用Glist
 {
-    guint value;
-    gchar std_buf[100] = {0};
-    gchar con_buf[100] = {0};
-    GtkWidget *window;
-    GtkWidget *image;
-    GtkWidget *label_std;
-    GtkWidget *label_con;
-    GtkWidget *listbox;
-    GtkWidget *row_image_head;
-    GtkWidget *row_label_std;
-    GtkWidget *row_label_con;
-    GtkWidget *row_spare;
+    guint select;
+    GList *list = NULL;
+    gchar *item1, *item2, *item3;
+    g_object_get(G_OBJECT (entry), "jpeg_list", &list, "interface_select", &select, NULL);
+    item1 = (gchar *)g_list_nth_data(list, 0);
+    item2 = (gchar *)g_list_nth_data(list, 1);
+    item3 = (gchar *)g_list_nth_data(list, 2);
+    cairo_t *cr1 = cairo_create(surface);     //工作模式，图片
+    cairo_t *cr2 = cairo_create(surface);     //三角箭头，图片
+    cairo_t *cr3 = cairo_create(surface);     //第一行:拍照模式，字符串
+    cairo_t *cr4 = cairo_create(surface);     //第二行:连拍间隔，字符串
+    cairo_t *cr5 = cairo_create(surface);     //第三行:done，字符串
+    cairo_t *cr6 = cairo_create(surface);     //占位，矩形
+    cairo_t *cr7 = cairo_create(surface);     //占位，矩形
+    cairo_t *cr8 = cairo_create(surface);
+    cairo_set_operator(cr8, CAIRO_OPERATOR_CLEAR);
+    cairo_rectangle (cr8, 0, 0, 128, 128);
+    cairo_fill(cr8);
+    cairo_stroke(cr8);
+    cairo_surface_t *image1;
+	cairo_surface_t *image2;
+    cairo_set_source_surface (cr1, image1, 47, 6);
+    cairo_set_source_surface (cr2, image2, 73, 7);
 
-    guint value;
-    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
+    cairo_select_font_face(cr3, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr3, 12.0);
+    cairo_set_source_rgb(cr3, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr3, 8.0, 36.0); 
+    
+    cairo_select_font_face(cr4, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr4, 12.0);
+    cairo_set_source_rgb(cr4, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr4, 8.0, 48.0);
+    
+    cairo_select_font_face(cr4, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr4, 12.0);
+    cairo_set_source_rgb(cr4, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr4, 8.0, 60.0);
 
-    //创建底图
-    window = gtk_window_new(GTK_WINDOW_POPUP);
-    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    //创建一个listbox
-    listbox = gtk_list_box_new();
-    gtk_container_add(GTK_CONTAINER(window), listbox);
-    //插入表头图片
-    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_JPEG, SELECT_NO));
-    //创建标签
-    label_std = gtk_label_new("Standard");
-    gtk_widget_set_size_request(label_std, 85, 15);
-    sprintf(std_buf, "<span foreground='black' font_desc='10'>Standard</span>"); 
-    label_con = gtk_label_new("con mode");
-    gtk_widget_set_size_request(label_con, 85, 15);
-    sprintf(con_buf, "<span foreground='black' font_desc='10'>Continuous</span>"); 
-
-    //创建row，将标签和图片插入row中
-    row_image_head = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_image_head), image);
-    row_label_std = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_label_std), label_std);
-    row_label_con = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_label_con), label_con);
-    row_spare = gtk_list_box_row_new();
-   
-    //将row插入到listbox中
-    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_std, 2);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_con, 3);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 4);
-
-    switch (value)
+    switch (select)
     {
-    case SELECT_NONE:
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
-        break;
-    case SELECT_HEAD:
-        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_JPEG, SELECT_YES));
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
+    case -1:
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_YES));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_YES));
+        cairo_set_source_surface (cr1, image1, 47, 0);
+        cairo_set_source_surface (cr2, image2, 73, 0);
+        cairo_rectangle (cr6, 0, 0, 47, 28);
+        cairo_fill(cr6);
+        cairo_stroke(cr6);
+        cairo_rectangle (cr6, 67, 0, 6, 28);
+        cairo_fill(cr6);
+        cairo_stroke(cr6);
+        cairo_rectangle (cr6, 81, 0, 55, 28);
+        cairo_fill(cr6);
+        cairo_stroke(cr6);
         break;
     case SELECT_FIRST:
-        sprintf(std_buf, "<span foreground='white' font_desc='10'>Standard</span>"); 
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_mode));
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        cairo_set_source_surface (cr1, image1, 47, 6);
+        cairo_set_source_surface (cr2, image2, 73, 7);
+        cairo_rectangle (cr7, 0, 26, 128, 12);
+        cairo_fill(cr7);
+        cairo_stroke(cr7);
+    	cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
         break;
     case SELECT_SECOND:
-        sprintf(con_buf, "<span foreground='white' font_desc='10'>%s</span>", get_jpeg_continue_interval_string());
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_con));
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        cairo_set_source_surface (cr1, image1, 47, 6);
+        cairo_set_source_surface (cr2, image2, 73, 7);
+        cairo_rectangle (cr7, 0, 38, 128, 12);
+        cairo_fill(cr7);
+        cairo_stroke(cr7);
+        cairo_set_operator(cr4, CAIRO_OPERATOR_CLEAR);
         break;
+    case SELECT_THIRD:
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        cairo_set_source_surface (cr1, image1, 47, 6);
+        cairo_set_source_surface (cr2, image2, 73, 7);
+        cairo_rectangle (cr7, 0, 50, 128, 12);
+        cairo_fill(cr7);
+        cairo_stroke(cr7);
+    	cairo_set_operator(cr5, CAIRO_OPERATOR_CLEAR);
+        break;
+
     default:
         break;
     }
-    gtk_label_set_markup(GTK_LABEL(label_mode), shoot_buf);
-    gtk_label_set_markup(GTK_LABEL(label_raw), con_buf);
 
-    gtk_widget_show_all(window);
-    return FALSE;
-}
-
-#if 0
-gint show_jpeg_raw_setting()    //拍照模式，单拍或者连拍
-{
-    gchar buf[100] = {0};
-    GtkWidget *window;
-    GtkWidget *image;
-    GtkWidget *label_on;
-    GtkWidget *label_off;
-    GtkWidget *listbox;
-    GtkWidget *row_image_head;
-    GtkWidget *row_label_on;
-    GtkWidget *row_label_off;
-    //创建底图
-    window = gtk_window_new(GTK_WINDOW_POPUP);
-    gtk_window_set_title(GTK_WINDOW(window), "AnyWhere");
-    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    //创建一个listbox
-    listbox = gtk_list_box_new();
-    gtk_container_add(GTK_CONTAINER(window), listbox);
-    //插入表头图片
-    image = gtk_image_new_from_file("jpeg模式图片");
-    //创建单拍和连拍模式的标签
-    label_on = gtk_label_new("Raw:On");
-    gtk_widget_set_size_request(label_on, 85, 15);
-    sprintf(buf, "<span foreground='black' font_desc='10'>Raw:On</span>");
-    gtk_label_set_markup(GTK_LABEL(label_on), buf);
-    label_off = gtk_label_new("Raw:Off");
-    gtk_widget_set_size_request(label_off, 85, 15);
-    sprintf(buf, "<span foreground='black' font_desc='10'>Raw:Off</span>");
-    gtk_label_set_markup(GTK_LABEL(label_off), buf);
-    //创建3行row，将标签和图片插入row中
-    row_image_head = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_image_head), image);
-    row_label_on = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_label_on), label_on);
-    row_label_off = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_label_off), label_off);
-
-    //将3行row插入到listbox中
-    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_std, 2);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_con, 3);
-
-    gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
-
-    gtk_widget_show_all(window);
-    return FALSE;
-}
-#endif
-
-gint show_jpeg_setting1()  //包含拍照模式，连拍间隔，采用listbox
-{
-    guint value;
-    gchar shoot_buf[100] = {0};
-    gchar con_buf[100] = {0};
-    GtkWidget *window;
-    GtkWidget *image;
-    GtkWidget *label_mode;
-    GtkWidget *label_con;
-    GtkWidget *listbox;
-    GtkWidget *row_image_head;
-    GtkWidget *row_label_mode;
-    GtkWidget *row_label_con;
-    GtkWidget *row_spare;
-
-    guint value;
-    g_object_get(GOBJECT(entry), "interface_select", &value, NULL);
-
-    //创建底图
-    window = gtk_window_new(GTK_WINDOW_POPUP);
-    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    //创建一个listbox
-    listbox = gtk_list_box_new();
-    gtk_container_add(GTK_CONTAINER(window), listbox);
-    //插入表头图片
-    image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_JPEG, SELECT_NO));
-    //创建标签
-    label_mode = gtk_label_new("shoot mode");
-    gtk_widget_set_size_request(label_mode, 85, 15);
-    sprintf(shoot_buf, "<span foreground='black' font_desc='10'>%s</span>", get_jpeg_shoot_string());  //修改label的字体大小，颜色等，可加下划线等
-    label_con = gtk_label_new("con mode");
-    gtk_widget_set_size_request(label_con, 85, 15);
-    sprintf(con_buf, "<span foreground='black' font_desc='10'>%s</span>", get_jpeg_continue_interval_string());  //修改label的字体大小，颜色等，可加下划线等
-
-    //创建row，将标签和图片插入row中
-    row_image_head = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_image_head), image);
-    row_label_mode = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_label_mode), label_mode);
-    row_label_con = gtk_list_box_row_new();
-    gtk_container_add(GTK_CONTAINER(row_label_con), label_con);
-    row_spare = gtk_list_box_row_new();
-   
-    //将row插入到listbox中
-    gtk_list_box_prepend(GTK_LIST_BOX(listbox), row_image_head);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_mode, 2);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_label_con, 3);
-    gtk_list_box_insert(GTK_LIST_BOX(listbox), row_spare, 4);
-
-    switch (value)
+    cairo_paint(cr1);
+    cairo_paint(cr2);
+    cairo_set_operator(cr6, CAIRO_OPERATOR_CLEAR);
+    cairo_rectangle (cr6, 0, 0, 128, 4);
+    cairo_fill(cr6);
+    cairo_stroke(cr6);
+    if (-1 == select)
     {
-    case SELECT_NONE:
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_spare));
-        break;
-    case SELECT_HEAD:
-        image = gtk_image_new_from_file(get_work_mode_image_sel_url(WORKMODE_JPEG, SELECT_YES));
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_image_head));
-        break;
-    case SELECT_FIRST:
-        sprintf(shoot_buf, "<span foreground='white' font_desc='10'>%s</span>", get_jpeg_shoot_string());
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_mode));
-        break;
-    case SELECT_SECOND:
-        sprintf(con_buf, "<span foreground='white' font_desc='10'>%s</span>", get_jpeg_continue_interval_string());
-        gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row_label_con));
-        break;
-    default:
-        break;
+        cairo_rectangle (cr6, 0, 24, 128, 4);
+        cairo_fill(cr6);
+        cairo_stroke(cr6);
     }
-    gtk_label_set_markup(GTK_LABEL(label_mode), shoot_buf);
-    gtk_label_set_markup(GTK_LABEL(label_con), con_buf);
+    cairo_show_text(cr3, item1);
+    cairo_show_text(cr4, item2);
+    cairo_show_text(cr5, item3);
+    
+    cairo_destroy(cr1);
+	cairo_destroy(cr2);
+	cairo_destroy(cr3);
+	cairo_destroy(cr4);
+    cairo_destroy(cr5);
+    cairo_destroy(cr6);
+    cairo_destroy(cr7);
+    cairo_destroy(cr8);
+    cairo_surface_destroy(image1);
+    cairo_surface_destroy(image2);
 
-    gtk_widget_show_all(window);
-    return FALSE;
+    return TRUE;
 }
 
 gint show_jpeg_state()
 {
-    GtkWidget *window;
-    GtkWidget *hbox1;
-    GtkWidget *hbox2;
-    GtkWidget *vbox;
-    GtkWidget *label_state;
-    GtkWidget *label_IP;
-    GtkWidget *label_number;
-    GtkWidget *image_network;
-    GtkWidget *image_battery;
-    GtkWidget *image_camera;
-    gchar buf_state[100] = {0};
-    gchar buf_ipaddr[100] = {0};
-    gchar buf_picnum[100] = {0};
-    window = gtk_window_new(GTK_WINDOW_POPUP);
-    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    
-    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(window), vbox);
-    //第一行显示信息
-    hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-    gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 0);
-    
-    image_network = gtk_image_new_from_file(get_network_image_url());
-    gtk_box_pack_start(GTK_BOX(hbox1), image_network, FALSE, FALSE, 0);
-    label_IP = gtk_label_new("IPaddr");
-    gtk_widget_set_size_request(label_IP, 84， 11);
-    sprintf(buf_ipaddr, "<span foreground='black' font_desc='10'>%s</span>", state_data.IPaddr);
-    gtk_label_set_markup(GTK_LABEL(label_IP), buf_ipaddr);
-    gtk_box_pack_start(GTK_BOX(hbox1), label_IP);
-    image_battery = gtk_image_new_from_file(get_battery_image_url());
-    gtk_box_pack_start(GTK_BOX(hbox1), image_battery, FALSE, FALSE, 0);
+    gchar *ip_addr, *disk_space, *shoot;
+    g_object_get(G_OBJECT (entry), "IPaddr", &ip_addr, "jpeg_disk_space_3", &disk_space, "jpeg_shoot_mode_3", &shoot, NULL);
+    cairo_t *cr1 = cairo_create(surface);     //网络工作模式，图片
+    cairo_t *cr2 = cairo_create(surface);     //电量，图片
+    cairo_t *cr3 = cairo_create(surface);     //工作模式，图片
+    cairo_t *cr4 = cairo_create(surface);     //IP时地址，字符串
+    cairo_t *cr5 = cairo_create(surface);     //磁盘剩余空间，字符串
+    cairo_t *cr6 = cairo_create(surface);     //分辨率，字符串
+    cairo_t *cr7 = cairo_create(surface);     //拍照模式，字符串
+    cairo_t *cr8 = cairo_create(surface);     //照片存储格式，字符串
+    cairo_t *cr9 = cairo_create(surface);
+	cairo_set_operator(cr9, CAIRO_OPERATOR_CLEAR);
+	cairo_rectangle (cr9, 0, 0, 128, 128);
+	cairo_fill(cr9);
+	cairo_stroke(cr9);
+    cairo_surface_t *image1 = cairo_image_surface_create_from_png (get_network_image_url());
+	cairo_surface_t *image2 = cairo_image_surface_create_from_png (get_battery_image_url());
+	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
+    cairo_set_source_surface (cr1, image1, 1, 4);
+    cairo_set_source_surface (cr2, image2, 108, 4);
+    cairo_set_source_surface (cr3, image3, 4, 23);
 
-    //第二行显示信息
-    hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
-    gtk_box_pack_start(GTK_BOX(vbox), hbox2, FALSE, FALSE, 0);
-    image_camera = gtk_image_new_from_file(get_state_mode_image_url(WORKMODE_JPEG));
-    gtk_box_pack_start(GTK_BOX(hbox2), image_camera);
-    label_number = gtk_label_new("picture number");
-    gtk_widget_set_size_request(label_number, 100， 20);
-    sprintf(buf_picnum, "<span foreground='black' font_desc='18'> %s   </span>", get_jpeg_space_string());
-    gtk_label_set_markup(GTK_LABEL(label_number), buf_picnum);
-    gtk_box_pack_start(GTK_BOX(hbox2), label_number);
+    cairo_paint(cr1);
+    cairo_select_font_face(cr4, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr4, 12.0);
+    cairo_set_source_rgb(cr4, 0.0, 0.0, 0.0); 
+    cairo_move_to(cr4, 16.0, 13.0);     //IP位置
+    cairo_show_text(cr4, ip_addr);
+    cairo_paint(cr2);
+    cairo_paint(cr3);
+    cairo_select_font_face(cr5, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr5, 24.0);
+    cairo_set_source_rgb(cr5, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr5, 42.0, 40.0);     //剩余空间位置
+    cairo_show_text(cr5, disk_space);
+    cairo_select_font_face(cr6, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr6, 14.0);
+    cairo_set_source_rgb(cr6, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr6, 1.0, 60.0);     //分辨率位置
+    cairo_show_text(cr6, "8K");
+    cairo_select_font_face(cr7, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr7, 14.0);
+    cairo_set_source_rgb(cr7, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr7, 25.0, 60.0);     //拍照模式位置
+    cairo_show_text(cr7, shoot);
+    cairo_select_font_face(cr8, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr8, 14.0);
+    cairo_set_source_rgb(cr8, 1.0, 1.0, 1.0); 
+    cairo_move_to(cr8, 96.0, 60.0);     //存储格式位置
+    cairo_show_text(cr8, "JPEG");
 
-    //创建状态标签,第三行显示信息
-    label_state = gtk_label_new("status");
-    gtk_widget_set_size_request(label_state, 120, 15);
-    sprintf(buf_state, "<span foreground='black' font_desc='12'>8K  %s  JPEG</span>", get_jpeg_shoot_string());  //修改label的字体大小，颜色等，可加下划线等
-    gtk_label_set_markup(GTK_LABEL(label_state), buf_state);
-    gtk_box_pack_start(GTK_BOX(vbox), label_state, FALSE, FALSE, 0);
+    cairo_destroy(cr1);
+	cairo_destroy(cr2);
+	cairo_destroy(cr3);
+	cairo_destroy(cr4);
+    cairo_destroy(cr5);
+	cairo_destroy(cr6);
+	cairo_destroy(cr7);
+	cairo_destroy(cr8);
+    cairo_destroy(cr9);
+    cairo_surface_destroy(image1);
+    cairo_surface_destroy(image2);
+    cairo_surface_destroy(image3);
 
-    gtk_widget_show_all(window);
-    return FALSE;
-}
-
-/* 拍照模式中收到跳转信号可切换到录视频模式
- * 1秒之内收到设置信号，进入设置界面
- * 等待1秒自己发信号进入状态显示界面 
- */
-
-gint show_jpeg()
-{
-    gchar IP_buf[100] = {0};
-    GtkWidget *window;
-//    GtkWidget *button;
-    GtkWidget *header_box;
-    GtkWidget *vbox;
-    GtkWidget *image_camera;
-    GtkWidget *image_eth;
-    GtkWidget *image_battery;
-    GtkWidget *label_IPaddr;
-    window = gtk_window_new(GTK_WINDOW_POPUP);
-    gtk_window_set_title(GTK_WINDOW(window), "JPEG mode");
-    gtk_window_set_default_size(GTK_WINDOW(window), 128, 64);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-
-    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(window),vbox);
-
-    //创建hbox并加入vbox
-    header_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 2);
-    gtk_box_pack_start(GTK_BOX(vbox),header_box, FALSE, FALSE, 0);
-
-    //创建网口图片窗口并加入hbox
-    image_eth = gtk_image_new_from_file(get_network_image_url());   //加载图片的路径
-    gtk_box_pack_start(GTK_BOX(header_box), image_eth, FALSE, FALSE, 0);
-
-    //创建标签并加入hbox
-    label_IPaddr = gtk_label_new("IP addr");
-    sprintf(IP_buf, "<span foreground='black' font_desc='10'>%s</span>", state_data.IPaddr);  //修改label的字体大小，颜色等，可加下划线等
-    gtk_label_set_markup(GTK_LABEL(label_IPaddr), IP_buf);  
-    gtk_widget_set_size_request(label_IPaddr, 84, 11);
-    gtk_container_add(GTK_BOX(header_box), label_IPaddr);
-
-    //创建电池图片窗口并加入hbox
-    image_battery = gtk_image_new_from_file(get_battery_image_url());   
-    gtk_box_pack_start(GTK_BOX(header_box), image_battery, FALSE, FALSE, 0);
-    
-    //创建拍照模式图片窗口并加入vbox
-    image_camera = gtk_image_new_from_file(get_work_mode_image_big_url(WORKMODE_JPEG));   //加载图片的路径
-    gtk_box_pack_start(GTK_BOX(vbox), image_camera, FALSE, FALSE, 0);
-
-    gtk_widget_show_all(window);
-    return FALSE;
+    return TRUE;
 }

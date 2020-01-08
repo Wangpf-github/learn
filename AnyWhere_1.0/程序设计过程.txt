@@ -31,3 +31,5 @@ IP:192.168.10.166 telnet 启动脚本 himm工
 4.output/target内/usr/share/fonts中加两种字体
 
 5.cairo需要用的png图片的路径
+
+开机图片转码：黑底白字，取模规则为B1

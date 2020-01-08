@@ -1,5 +1,6 @@
 #include "AnyWhere_oled.h"
 
+
 /* 测试程序 */
 gpointer thread_func(gpointer data)
 {
@@ -29,40 +30,48 @@ gpointer thread_func(gpointer data)
     list4 = g_list_insert(list4, "LAN:DHCP", 2);
     list4 = g_list_insert(list4, "Done", 3);
     
-    g_object_set(G_OBJECT(entry), "interface", 0, 
-                                 "jpeg_list", list1,
-                                 "MP4_list", list2,
-                                 "live_list", list3,
-                                 "system_list", list4,
-                                 "interface_select", 0,
-                                 "network_mode", NETWORK_WIRE,
-                                 "IPaddr", "192.168.10.100",
-                                 "battery", BATTERY_P_100,
-                                 "jpeg_disk_space_3", "12300",
-                                 "jpeg_resolution_3", "8K",
-                                 "jpeg_shoot_mode_3", "Standard",
-                                 "jpeg_format_3", "JPEG",
-                                 "mp4_work_time_6", "1:30:45",
-                                 "mp4_resolution_6", "8K",
-                                 "mp4_bitrate_6", "30FPS",
-                                 "mp4_framerate_6", "100MB",
-                                 "live_work_time_9", "03:10:19",
-                                 "live_resolution_9", "6K",
-                                 "live_bitrate_9", "60M",
-                                 "live_framerate_9", "20FPS",
-                                 "image_url", "/nfsroot", NULL);
+    g_object_set(G_OBJECT(entry), "interface",       0, 
+                                  "jpeglist",        list1,
+                                  "videolist",         list2,
+                                  "livelist",        list3,
+                                  "systemlist",      list4,
+                                  "select",          -1,
+                                  "network",     NETWORK_WIRE,
+                                  "IPaddr",           "192.168.10.100",
+                                  "battery",          BATTERY_P_100,
+                                  "JpegDisk", "12300",
+                                  "JpegResolution", "8K",
+                                  "JpegShoot", "Standard",
+                                  "JpegFormat",    "JPEG",
+                                  "VideoTime",  "01:30:45",
+                                  "VideoResolution", "8K",
+                                  "VideoBitrate",    "30FPS",
+                                  "VideoFramerate",  "100MB",
+                                  "LiveTime", "00:00:00",
+                                  "LiveResolution", "6K",
+                                  "LiveBitrate",   "60M",
+                                  "LiveFramerate", "20FPS",
+                                  "ImageUrl",       "/test", NULL);
 
-    g_object_get(G_OBJECT(entry), "image_url", &image_route, NULL);
-    printf("image_route is %s\n", image_route);
+    g_object_get(G_OBJECT(entry), "ImageUrl", &image_route, NULL);
+//    g_print("PLease input num\n");
+//    scanf("%d", &num);
+//    g_object_set(G_OBJECT(entry), "interface", num, NULL);
+    gchar time[20] = {0};
+    list1 = g_list_insert(list1, "Interval:1/5s", 1);
+    list2 = g_list_insert(list2, "BitRate:15Mbps", 1);
+    list3 = g_list_insert(list3, "FrameRate:26FPS", 2);
+    num = 0;
+#if 1
     while (1)
     {
         g_print("PLease input num\n");
         scanf("%d", &num);
-        
         g_object_set(G_OBJECT(entry), "interface", num, NULL);
-            
     }
+#endif
 }
+
 
 int main()
 {

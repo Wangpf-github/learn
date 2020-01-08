@@ -1,0 +1,50 @@
+  guint    interface;                #画面切换：  0.开机状态
+                                                 1.关机
+                                                 2.进入拍照模式主页面
+                                                 3.拍照状态显示页面
+                                                 4.拍照设置页面1
+                                                 5.进入录视频模式主页面
+                                                 6.视频状态显示页面
+                                                 7.视频设置页面1
+                                                 8.视频设置页面2
+                                                 9.进入直播模式主页面
+                                                 10.进入直播状态显示页面
+                                                 11.直播设置页面1
+                                                 12.直播设置页面2
+                                                 13.进入系统设置主页面
+                                                 14.系统设置页面1
+                                                 15.系统设置页面2
+  guint    interface_select;       #选中反色项切换：0.不选择
+                                                  1.选择导航栏
+                                                  2.选择第一行文字
+                                                  3.选择第二行文字
+                                                  4.选择第三行文字
+  guint    workmode;               #当前工作模式：  0.拍照
+                                                  1.视频
+                                                  2.直播
+                                                  3.系统设置
+  guint    network_mode;           #网络工作模式：  0.有线网络
+                                                  1.无线网络
+GString    IPaddr;                 #当前IP地址
+  guint    battery;                #电池电量：      0.低于5%
+                                                   1.10%
+                                                   2.20%
+                                                   3.40%
+                                                   4.60%
+                                                   5.80%
+                                                   6.100%
+                                                   7.充电
+   gint    jpeg_disk_space_3;       #拍照模式，还能拍照的数量 ， -1表示没有空间
+GString    jpeg_shoot_mode_4_1;     #拍照模式： 标准/连拍
+GString    jpeg_continue_interval_4_2; #连拍模式拍摄间隔,前端输入，相机只显示，按键无法设置
+GString    mp4_work_time_6;            #录像模式工作时长
+GString    mp4_separate_8_1;           #分段间隔： 10分钟/20分钟/30分钟/60分钟/不分段
+GString    live_work_time_10;           #直播模式工作时间
+GString    live_resolution_11_1;     #直播模式分辨率： 4K/6K/8K
+GString    live_bitrate_11_2;        #直播模式码率：  5M/10M/15M/30M/40M/50M/60M
+GString    live_framerate_11_3;      #直播模式帧率：   15FPS/20FPS/25FPS/30PFS/60FPS
+GString    live_protocol_12_1;       #暂时支持一种RTMP
+GString    sys_WIFI_14_1;            #系统设置wifi模式： AP/station/关闭
+GString    sys_LED_14_2;             #led开启状态：  开启/关闭
+GString    sys_LAN_14_3;             #LAN状态，相机只显示：  DHCP/手动
+  

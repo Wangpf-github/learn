@@ -392,19 +392,6 @@ int main ( int argc, char *argv[] )
 		{
 			*(fbp+i)=picture2[i];
 		}
-	while(1)
-	{
-		for(i = 310 ; i < 311; i++)
-		{
-			*(fbp+i) = 0xFE;
-		}
-		//sleep(1);
-		for(i = 310 ; i < 311; i++)
-		{
-			*(fbp+i) = 0xFF;
-		}
-		//sleep(0);
-	}    
 
 	//删除对象映射
 	munmap(fbp, screensize);

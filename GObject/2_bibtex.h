@@ -2,7 +2,10 @@
 #define _2_BIBTEX_H
 
 #include <glib-object.h>
-#include <gtk/gtk.h>
+#include <glib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define KB_TYPE_BIBTEX (kb_bibtex_get_type())
 //强制转换，GObject基类转换为本子类
@@ -19,5 +22,6 @@ typedef struct _KbBibtexClass
 }KbBibtexClass;
 
 GType kb_bibtex_get_type(void);
+
 
 #endif
