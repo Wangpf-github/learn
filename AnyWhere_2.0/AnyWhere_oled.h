@@ -18,7 +18,7 @@
 //强制转换，GObject基类转换为本子类
 #define AW_GTK(object) G_TYPE_CHECK_INSTANCE_CAST((object), AW_TYPE_GTK, AwGtk)
 #define WIDTH  (128)
-#define HIGH   (60)
+#define HIGH   (64)
 
 typedef struct _AwGtk
 {

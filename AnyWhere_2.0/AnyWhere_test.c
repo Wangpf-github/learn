@@ -51,12 +51,12 @@ gpointer thread_func(gpointer data)
                                   "LiveResolution", "6K",
                                   "LiveBitrate",   "60M",
                                   "LiveFramerate", "20FPS",
-                                  "ImageUrl",       "/nfsroot", NULL);
-    
+                                  "ImageUrl",       "/test", NULL);
+
     g_object_get(G_OBJECT(entry), "ImageUrl", &image_route, NULL);
-    g_print("PLease input num\n");
-    scanf("%d", &num);
-    g_object_set(G_OBJECT(entry), "interface", num, NULL);
+//    g_print("PLease input num\n");
+//    scanf("%d", &num);
+//    g_object_set(G_OBJECT(entry), "interface", num, NULL);
     gchar time[20] = {0};
     list1 = g_list_insert(list1, "Interval:1/5s", 1);
     list2 = g_list_insert(list2, "BitRate:15Mbps", 1);
@@ -65,8 +65,9 @@ gpointer thread_func(gpointer data)
 #if 1
     while (1)
     {
-        
-        g_object_set(G_OBJECT(entry), "livelist", list3, NULL);
+        g_print("PLease input num\n");
+        scanf("%d", &num);
+        g_object_set(G_OBJECT(entry), "interface", num, NULL);
     }
 #endif
 }
