@@ -27,8 +27,32 @@ onvif规范内容：搜索服务，设备发现，设备管理，事件管理，
 1.客户端探测服务器
  (1)客户端在UDP协议下，向网段内的组播地址239.255.255.250，端口3702，不断地向四周发送Probe消息探针，而网段内的服务器在接收到Probe这个探测消息后，
     通过回复ProbeMatch消息让客户端接收，从而让客户端识别到服务器。 
- (2)编译头文件：wsdl2h -o onvif.h -c -s -t ./typemap.dat http://www.onvif.org/onvif/ver10/device/wsdl/devicemgmt.wsdl http://www.onvif.org/onvif/ver10/media/wsdl/media.wsdl http://www.onvif.org/onvif/ver10/deviceio.wsdl http://www.onvif.org/onvif/ver10/network/wsdl/remotediscovery.wsdl
- (3)生成代码：soapcpp2 --c onvif.h -x -S -s -L -I./ -I./gsoap -I./import/ -I./custom -I./plugin
+ (2)编译头文件：wsdl2h -o onvif.h -c -s -t ./typemap.dat 
+ ( http://www.onvif.org/onvif/ver10/device/wsdl/devicemgmt.wsdl
+   http://www.onvif.org/onvif/ver10/events/wsdl/event.wsdl
+   http://www.onvif.org/onvif/ver10/display.wsdl
+   http://www.onvif.org/onvif/ver10/deviceio.wsdl
+   http://www.onvif.org/onvif/ver20/imaging/wsdl/imaging.wsdl
+   http://www.onvif.org/onvif/ver10/media/wsdl/media.wsdl
+   http://www.onvif.org/onvif/ver20/ptz/wsdl/ptz.wsdl
+   http://www.onvif.org/onvif/ver10/receiver.wsdl
+   http://www.onvif.org/onvif/ver10/recording.wsdl
+   http://www.onvif.org/onvif/ver10/search.wsdl
+   http://www.onvif.org/onvif/ver10/network/wsdl/remotediscovery.wsdl
+   http://www.onvif.org/onvif/ver10/replay.wsdl
+   http://www.onvif.org/onvif/ver20/analytics/wsdl/analytics.wsdl
+   http://www.onvif.org/onvif/ver10/analyticsdevice.wsdl
+   http://www.onvif.org/onvif/ver10/schema/onvif.xsd
+   http://www.onvif.org/ver10/actionengine.wsdl
+   http://www.onvif.org/ver10/pacs/accesscontrol.wsdl
+   http://www.onvif.org/ver10/pacs/doorcontrol.wsdl
+   http://www.onvif.org/ver10/advancedsecurity/wsdl/advancedsecurity.wsdl
+   http://www.onvif.org/ver10/accessrules/wsdl/accessrules.wsdl
+   http://www.onvif.org/ver10/credential/wsdl/credential.wsdl
+   http://www.onvif.org/ver10/schedule/wsdl/schedule.wsdl
+ )
+ (3)生成代码：soapcpp2 -c onvif.h -x -S -s -L -I./ -I./gsoap -I./import/ -I./custom -I./plugin
+
 2. onvif服务器端具体实现步骤:
  (1)实现设备发现功能，填充__wsdd__Probe函数，告诉客户端提供服务的http地址，如"http://192.168.24.129:5000/onvif/device_service"
     （注意：这里的/onvif/device_service在onvif中只是相当于一个标识符，并不是具体存在的路径）；
@@ -39,4 +63,7 @@ onvif规范内容：搜索服务，设备发现，设备管理，事件管理，
     __trt__GetVideoSourceConfigurations等4个函数；
  (6)获取rtsp实时视频流，填充__trt__GetStreamUri函数，该函数会返回rtsp实时视频流的访问链接，通过这个uri去获取视频流。
 
+ 现有文件中应该包含了所有的所有接口，只需要找到有需求的接口，填充相关的内容即可
+
+ wsdl2h -o onvif.h -c -s -t ./typemap.dat http://www.onvif.org/onvif/ver10/device/wsdl/devicemgmt.wsdl http://www.onvif.org/onvif/ver10/media/wsdl/media.wsdl http://www.onvif.org/onvif/ver10/event/wsdl/event.wsdl http://www.onvif.org/onvif/ver10/display.wsdl http://www.onvif.org/onvif/ver10/deviceio.wsdl http://www.onvif.org/onvif/ver20/imaging/wsdl/imaging.wsdl http://www.onvif.org/onvif/ver20/ptz/wsdl/ptz.wsdl http://www.onvif.org/onvif/ver10/receiver.wsdl http://www.onvif.org/onvif/ver10/recording.wsdl http://www.onvif.org/onvif/ver10/search.wsdl http://www.onvif.org/onvif/ver10/network/wsdl/remotediscovery.wsdl http://www.onvif.org/onvif/ver10/replay.wsdl http://www.onvif.org/onvif/ver20/analytics/wsdl/analytics.wsdl http://www.onvif.org/onvif/ver10/analyticsdevice.wsdl http://www.onvif.org/ver10/actionengine.wsdl http://www.onvif.org/ver10/pacs/accesscontrol.wsdl http://www.onvif.org/ver10/pacs/doorcontrol.wsdl
  

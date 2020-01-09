@@ -2,8 +2,7 @@
 #include "wsaapi.h"
 #include "soapH.h"
 #include "soapStub.h"
-#include "wsdd.nsmap"
-
+#include "wsdd.h"
 
 SOAP_FMAC5 int SOAP_FMAC6 SOAP_ENV__Fault(struct soap* soap, char *faultcode, char *faultstring, char *faultactor,
 struct SOAP_ENV__Detail *detail, struct SOAP_ENV__Code *_SOAP_ENV__Code,
@@ -2760,7 +2759,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetServiceCapabilities(struct soap* soap, struc
     return 0;
 }
 
-/** Web service operation '__trt__GetVideoSources' (returns SOAP_OK or error code) */
+/** Web service operation '__trt__GetVideoSources' (returns SOAP_OK or error code) */ /* 列出所有的可用视频输入 */
 SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoSources(struct soap* soap, struct _trt__GetVideoSources *trt__GetVideoSources, struct _trt__GetVideoSourcesResponse *trt__GetVideoSourcesResponse)
 {
     printf("-----------------------------__trt__GetVideoSources------------------------------------");
@@ -2808,7 +2807,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__CreateProfile(struct soap* soap, struct _trt__C
     return 0;
 }
 
-/** Web service operation '__trt__GetProfile' (returns SOAP_OK or error code) */
+/** Web service operation '__trt__GetProfile' (returns SOAP_OK or error code) */ /* 配置文件标记已知，通过此接口获取配置文件 */
 SOAP_FMAC5 int SOAP_FMAC6 __trt__GetProfile(struct soap* soap, struct _trt__GetProfile *trt__GetProfile, struct _trt__GetProfileResponse *trt__GetProfileResponse)
 {
     trt__GetProfileResponse->Profile = (struct tt__Profile *)soap_malloc(soap, sizeof(struct tt__Profile));
@@ -2878,7 +2877,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetProfile(struct soap* soap, struct _trt__GetP
     return 0;
 }
 
-/** Web service operation '__trt__GetProfiles' (returns SOAP_OK or error code) */
+/** Web service operation '__trt__GetProfiles' (returns SOAP_OK or error code) */  /* 返回现有的媒体配置 */
 SOAP_FMAC5 int SOAP_FMAC6 __trt__GetProfiles(struct soap* soap, struct _trt__GetProfiles *trt__GetProfiles, struct _trt__GetProfilesResponse *trt__GetProfilesResponse)
 {
     printf("-------------------------------__trt__GetProfiles---------------------------------\n");
@@ -3114,7 +3113,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoSourceConfigurations(struct soap* soap,
     return 0;
 }
 
-/** Web service operation '__trt__GetVideoEncoderConfigurations' (returns SOAP_OK or error code) */
+/** Web service operation '__trt__GetVideoEncoderConfigurations' (returns SOAP_OK or error code) */  /* 列出视频编码器的所有配置 */
 SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoEncoderConfigurations(struct soap* soap, struct _trt__GetVideoEncoderConfigurations *trt__GetVideoEncoderConfigurations, struct _trt__GetVideoEncoderConfigurationsResponse *trt__GetVideoEncoderConfigurationsResponse)
 {
     printf("----------------------------__trt__GetVideoEncoderConfigurations-----------------------------------\n");
@@ -3206,7 +3205,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetAudioDecoderConfigurations(struct soap* soap
     return 0;
 }
 
-/** Web service operation '__trt__GetVideoSourceConfiguration' (returns SOAP_OK or error code) */
+/** Web service operation '__trt__GetVideoSourceConfiguration' (returns SOAP_OK or error code) */  /* 视频源配置 */
 SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoSourceConfiguration(struct soap* soap, struct _trt__GetVideoSourceConfiguration *trt__GetVideoSourceConfiguration, struct _trt__GetVideoSourceConfigurationResponse *trt__GetVideoSourceConfigurationResponse)
 {
     printf("-----------------------------__trt__GetVideoSourceConfiguration-------------------------------------\n");
