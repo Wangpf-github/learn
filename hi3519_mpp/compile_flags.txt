@@ -1,0 +1,10 @@
+-m32
+-I/home/bhescaper/Workspace/hi3519/host/opt/ext-toolchain/lib/gcc/arm-hisiv500-linux-uclibcgnueabi/4.9.4/include
+-I/home/bhescaper/Workspace/hi3519/host/opt/ext-toolchain/lib/gcc/arm-hisiv500-linux-uclibcgnueabi/4.9.4/include-fixed
+-I/home/bhescaper/Workspace/hi3519/host/opt/ext-toolchain/arm-hisiv500-linux-uclibcgnueabi/include
+-I/home/bhescaper/Workspace/hi3519/staging/usr/include
+-I/home/bhescaper/Workspace/hi3519/staging/usr/include/glib-2.0
+-I/home/bhescaper/Workspace/hi3519/staging/usr/include/gstreamer-1.0
+-I/home/bhescaper/Workspace/hi3519/staging/usr/lib/include
+-I/home/bhescaper/Workspace/hi3519/staging/usr/lib/glib-2.0/include
+-I/home/bhescaper/Workspace/hi3519/mpp/include
