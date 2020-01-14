@@ -88,7 +88,6 @@ SOAP_FMAC5 int SOAP_FMAC6  __wsdd__Probe(struct soap* soap, struct wsdd__ProbeTy
         pProbeMatchType = (struct wsdd__ProbeMatchType*)soap_malloc(soap, sizeof(struct wsdd__ProbeMatchType));
         soap_default_wsdd__ProbeMatchType(soap, pProbeMatchType);
 
-        //sprintf(str_tmp, "http://%s/onvif/device_service", ip_addr);
         sprintf(str_tmp, "http://%s:%d/onvif/device_service", ONVIF_TCP_IP, ONVIF_TCP_PORT);
         pProbeMatchType->XAddrs = soap_strdup(soap, str_tmp);
         if( wsdd__Probe->Types && strlen(wsdd__Probe->Types) )
@@ -686,7 +685,50 @@ SOAP_FMAC5 int SOAP_FMAC6 __tds__GetServices(struct soap* soap, struct _tds__Get
 /** Web service operation '__tds__GetServiceCapabilities' (returns SOAP_OK or error code) */
 SOAP_FMAC5 int SOAP_FMAC6 __tds__GetServiceCapabilities(struct soap* soap, struct _tds__GetServiceCapabilities *tds__GetServiceCapabilities, struct _tds__GetServiceCapabilitiesResponse *tds__GetServiceCapabilitiesResponse)
 {
-    return 0;
+    tds__GetServiceCapabilitiesResponse->Capabilities = (struct tds__DeviceServiceCapabilities *)soap_malloc(soap, sizeof(struct tds__DeviceServiceCapabilities));
+	/* NETWORK */
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network = (struct tds__NetworkCapabilities *)soap_malloc(soap, sizeof(struct tds__NetworkCapabilities));
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->IPFilter = xsd__boolean__false_;	
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->ZeroConfiguration = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->IPVersion6 = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->DynDNS = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->Dot11Configuration = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->HostnameFromDHCP= xsd__boolean__false_;	
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->NTP= (int *)soap_malloc(soap, sizeof(int));
+	*tds__GetServiceCapabilitiesResponse->Capabilities->Network->NTP= 1;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Network->__anyAttribute = NULL;
+
+	/* SYSTEM */
+	tds__GetServiceCapabilitiesResponse->Capabilities->System = (struct tds__SystemCapabilities *)soap_malloc(soap, sizeof(struct tds__SystemCapabilities));
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->DiscoveryResolve = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->DiscoveryBye = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->RemoteDiscovery = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->SystemBackup = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->FirmwareUpgrade = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->SystemLogging = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->HttpSystemBackup = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->HttpFirmwareUpgrade = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->HttpSystemLogging = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->System->HttpSupportInformation = xsd__boolean__false_;
+
+	/* SECURITY */
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security = (struct tds__SecurityCapabilities *)soap_malloc(soap, sizeof(struct tds__SecurityCapabilities));
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->TLS1_x002e0 = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->TLS1_x002e1 = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->TLS1_x002e2 = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->OnboardKeyGeneration = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->AccessPolicyConfig = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->Dot1X = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->RemoteUserHandling = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->X_x002e509Token = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->SAMLToken = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->KerberosToken = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->UsernameToken = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->HttpDigest = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->RELToken = xsd__boolean__false_;
+	tds__GetServiceCapabilitiesResponse->Capabilities->Security->SupportedEAPMethods = NULL;
+
+    return SOAP_OK;
 }
 
 /** Web service operation '__tds__GetDeviceInformation' (returns SOAP_OK or error code) */
@@ -3339,7 +3381,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoEncoderConfiguration(struct soap* soap,
     strcpy(trt__GetVideoEncoderConfigurationResponse->Configuration->token, "000");
     trt__GetVideoEncoderConfigurationResponse->Configuration->UseCount = 1;
     trt__GetVideoEncoderConfigurationResponse->Configuration->Quality = 1;
-    //根据前端设备时间支持的编码格式选择对应的值，因为设备只支持H264,选2
+    //根据前端设备时间支持的编码格式选择对应的值，设备支持H264,选2
     trt__GetVideoEncoderConfigurationResponse->Configuration->Encoding = tt__VideoEncoding__H264;   // JPEG = 0 , MPEG = 1, H264 = 2;
     //<Configuration><Resolution>
     trt__GetVideoEncoderConfigurationResponse->Configuration->Resolution = (struct tt__VideoResolution *)soap_malloc(soap,sizeof(struct tt__VideoResolution));
@@ -3366,7 +3408,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoEncoderConfiguration(struct soap* soap,
     trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->Address->Type = tt__IPType__IPv4;
     trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->Address->IPv4Address = (char *)soap_malloc(soap, sizeof(char) * 32);
     memset(trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->Address->IPv4Address, '\0', sizeof(char) * 32);
-    strcpy(trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->Address->IPv4Address, "224.1.0.0");
+    strcpy(trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->Address->IPv4Address, "189.1.0.0");
     trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->Port = 5000;
     trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->TTL = 64;
     trt__GetVideoEncoderConfigurationResponse->Configuration->Multicast->AutoStart = xsd__boolean__true_;
@@ -3379,7 +3421,7 @@ SOAP_FMAC5 int SOAP_FMAC6 __trt__GetVideoEncoderConfiguration(struct soap* soap,
 /** Web service operation '__trt__GetAudioSourceConfiguration' (returns SOAP_OK or error code) */
 SOAP_FMAC5 int SOAP_FMAC6 __trt__GetAudioSourceConfiguration(struct soap* soap, struct _trt__GetAudioSourceConfiguration *trt__GetAudioSourceConfiguration, struct _trt__GetAudioSourceConfigurationResponse *trt__GetAudioSourceConfigurationResponse)
 {
-    return 0;
+    return SOAP_FAULT;
 }
 
 /** Web service operation '__trt__GetAudioEncoderConfiguration' (returns SOAP_OK or error code) */

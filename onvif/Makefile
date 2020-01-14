@@ -6,7 +6,7 @@ SERVER_OBJS = soapC.o stdsoap2.o duration.o wsaapi.o onvif_server_interface.o so
 
 all: server 
 server: $(SERVER_OBJS)
-	$(CC) $(INCLUDE) -o deviceserver $(SERVER_OBJS) -lpthread
+	$(CC) $(INCLUDE) -o onvifserver $(SERVER_OBJS) -lpthread
 
 clean: 
-	rm -f *.o deviceprobe  deviceserver onvif
+	rm -f *.o deviceprobe  onvifserver onvif *.log
