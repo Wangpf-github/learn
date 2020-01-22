@@ -1,4 +1,4 @@
-//export PATH=/home/linux/git/buildroot-env/output/host/bin:$PATH
+//export PATH=/home/wang/hi3559av_buitroot/buildroot-env/output/host/bin:$PATH
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/build/libgtk3-3.22.30/:$PATH
 //aarch64-buildroot-linux-gnu-gcc cairo_test.c -o cairo_test  -lcairo `pkg-config --libs --cflags cairo gtk+-3.0` -I/home/linux/git/buildroot-env/output/host/lib/glib-2.0/include/
 
