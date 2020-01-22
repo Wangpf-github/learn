@@ -62,7 +62,7 @@ static void *OnvifBeDiscovered(void *arg) {
     //IP_ADD_MEMBERSHIP用于加入某个多播组，之后就可以向这个多播组发送数据或者从多播组接收数据
     if(setsockopt(UDPserverSoap.master, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mcast, sizeof(mcast)) < 0)
     {
-            printf("setsockopt error! error code = %d,err string = %s\n",errno,strerror(errno));
+        printf("setsockopt error! error code = %d,err string = %s\n",errno,strerror(errno));
         return 0;
     }
     

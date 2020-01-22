@@ -76,6 +76,7 @@ onvif规范内容：搜索服务，设备发现，设备管理，事件管理，
  点击user management:GetUsers  点击modify:SetUser   点击Creat：CreateUsers
  点击Certificates：GetCertificates，GetCertificatesStatus
  点击events：GetEventProperties
+ 
  点击live video：GetProfile，GetStreamUri，GetVideoSourceConfiguration
  点击video streaming:GetProfile,GetVideoEncoderConfigurationOptions,GetStreamUri   点击apply：SetVideoEncoderConfiguration
  点击image setting：GetProfile，GetOptions，GetImagingSettings，GetMoveOptions，GetStreamUri  点击apply：SetImagingSettings
@@ -88,3 +89,26 @@ NVR存储的视频分辨率是否取决于摄像机？                          
 不同厂家的NVR和onif标准调试客户端不同的控件，按照何种实现方式？
 使用onvif协议时，NVR的子码流的分辨率和码率等信息是否取决于服务器设备？
 onvif协议设置对相机系统设置和画面设置时和哪些接口对接，时海思接口还是rtsp服务器接口？
+
+#现存问题：
+  onvif标准客户端能够播放rtsp流，但是海康NVR无法播放，显示通道异常？
+  如何实现双码流，主流存储，子流用于预览，修改GetProfiles接口外其他还需要什么？      -----onvif标准客户端可实现双码流，但是NVR暂时无法切换
+  画面配置修改命令如何执行，修改海思接口还是rtsp接口？
+#整体实现方法：定义大结构体，保存所有相关参数的数据，通过对应接口更改或者读取
+#对应接口说明：
+  GetProfile：和GetProfiles对应，在已知标记的情况下，客户端可以获对应标记的配置信息
+  GetProfiles:客户端获取所有的配置，每种配置包含多种音视频的配置，编码器配置，PTZ，视频分析，元数据配置和扩展功能。
+  GetVideoSourceConfiguration：和GetVideoSourceConfigurations对应，在已知标记的情况下，客户端可以获对应标记的配置信息
+  AddVideoSourceConfiguration：已知标记的情况下，想配置文件中增加视频源配置，如果原来已经有则替换
+  GetVideoSourceConfigurations：客户端获取所有视频源的配置，用于配置所有视频源的配置，边界，镜头和视场角的描述，是GetProfiles中的一部分
+  GetStreamUri：客户端传入对应的标记，获取对应标记的rtsp服务器地址
+  GetVideoEncoderConfigurationOptions：客户端获取对应编码格式的配置（JPEF，MPEG，H264中的一种），包含分辨率，码率，帧率等
+  SetVideoEncoderConfiguration：设置编码器对应格式的配置
+  GetOptions:根据已知的标记，获取图像的设置，背光补偿，亮度范围，饱和度，对比度，曝光设置，焦距等；可以和SetImagingSettings配合使用
+  GetMoveOptions：焦距镜头的可移动范围，可能用不到
+  GetImagingSettings：获取视频源的图像配置，和GetOptions的内部参数相同
+  SetImagingSettings：客户端设置视频源的图像配置；背光补偿，亮度范围，饱和度，对比度，曝光设置，焦距,宽动态等；
+  CreateProfile：创建新的媒体配置文件
+  DeleteProfile：删除已知标记的配置文件
+  GetCompatibleVideoEncoderConfigurations
+  GetCompatibleMetadataConfigurations

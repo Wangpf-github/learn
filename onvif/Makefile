@@ -1,4 +1,5 @@
 GSOAP_ROOT = ./
+FLAG= arm-buildroot-linux-musleabi-
 CC = gcc -g -DWITH_NONAMESPACES  -DSOAP_DEBUG -DDEBUG
 INCLUDE = -I$(GSOAP_ROOT)
 SERVER_OBJS = soapC.o stdsoap2.o duration.o wsaapi.o onvif_server_interface.o soapClient.o soapServer.o onvif_server.o
