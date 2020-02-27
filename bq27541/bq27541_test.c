@@ -30,31 +30,31 @@ gboolean battery_test(gpointer bq)
     gint bcapacity;
     gint btemp;
     g_object_get(G_OBJECT(bq), "capacity", &bcapacity, NULL);
-        printf("capacity is %d%%\n", bcapacity);
+    printf("capacity is %d%%\n", bcapacity);
 
-        g_object_get(G_OBJECT(bq), "status", &bstate, NULL);
-        switch (bstate)
-        {
-        case BATTERY_CHARGING:
-            printf("State is charging\n");
-            break;
-        case BATTERY_DISCHARGING:
-            printf("State is discharging\n");
-            break;
-        case BATTERY_NOT_CHARGING:
-            printf("State is not-charging\n");
-            break;
-        case BATTERY_FULL:
-            printf("State is FULL\n");
-            break;
-        
-        default:
-            break;
-        }
-        
-        g_object_get(G_OBJECT(bq), "temp", &btemp, NULL);
-        printf("Temperature is %d.\n", btemp);
-        printf("#######################################\n");
+    g_object_get(G_OBJECT(bq), "status", &bstate, NULL);
+    switch (bstate)
+    {
+    case BATTERY_CHARGING:
+        printf("State is charging\n");
+        break;
+    case BATTERY_DISCHARGING:
+        printf("State is discharging\n");
+        break;
+    case BATTERY_NOT_CHARGING:
+        printf("State is not-charging\n");
+        break;
+    case BATTERY_FULL:
+        printf("State is FULL\n");
+        break;
+    
+    default:
+        break;
+    }
+    
+    g_object_get(G_OBJECT(bq), "temp", &btemp, NULL);
+    printf("Temperature is %d.\n", btemp);
+    printf("#######################################\n");
 }
 
 int main()

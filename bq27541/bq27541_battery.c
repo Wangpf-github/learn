@@ -224,15 +224,15 @@ gint get_param_state(gpointer data)
         bq27541_status[i] = buf[i];	
     }
 
-    if(strcmp(bq27541_status, "Charging") == 0)
+    if(strncmp(bq27541_status, "Charging", 8) == 0)
     {
         tmp = BATTERY_CHARGING;
     }
-    else if(strcmp(bq27541_status, "Discharging") == 0)
+    else if(strncmp(bq27541_status, "Discharging", 11) == 0)
     {
         tmp = BATTERY_DISCHARGING;
     }
-    else if(strcmp(bq27541_status, "Full") == 0)
+    else if(strncmp(bq27541_status, "Full", 4) == 0)
     {
         tmp = BATTERY_FULL;
     }
