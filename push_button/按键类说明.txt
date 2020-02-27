@@ -1,0 +1,26 @@
+根据硬件特性，ButtonState和ButtonEvent两个枚举类型成员顺序修改：
+typedef enum _ButtonState
+{
+    BUTTON_PRESSED,
+    BUTTON_RELEASED
+}ButtonState;
+
+typedef enum _ButtonEvent
+{
+    BUTTON_PRESS,
+    BUTTON_RELEASE
+}ButtonEvent;
+
+类初始化后，每隔0.1秒执行一次检测程序，第一次按下按键时timeout_count = 0，之后开始计算timeout_count超时次数；
+
+检测到按键状态变化，发出button_event信号，参数分别为当前按键状态和timeout_count次数；
+
+release_timeout和press_timeout 单位为秒， 小于1时，为关闭超时计数功能；
+
+类property为：
+    GpiodLine *gpio;
+    gint state;
+    gint ReleaseTimeout;    --松开按键超时，小于1时，为关闭 松开状态超时计数功能
+    gint PressTimeout;      --按下按键超时，小于1时，为关闭 按下状态超时计数功能
+
+button_test.c 为测试程序。

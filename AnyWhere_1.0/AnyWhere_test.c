@@ -1,10 +1,28 @@
 #include "AnyWhere_oled.h"
 
+gboolean oled_test(gpointer data)
+{
+    gint num = 0;
+
+    g_print("PLease input num\n");
+    scanf("%d", &num);
+    if(num == 0)
+    {
+        g_object_unref(data);
+        return FALSE;
+    }
+
+    g_object_set(G_OBJECT(data), "interface", num, NULL);
+
+    return TRUE;
+}
 
 /* 测试程序 */
-gpointer thread_func(gpointer data)
+int main()
 {
+    GMainLoop *loop;
     gint num;
+    OledScreen *oled;
     GList *list1 = NULL;
     GList *list2 = NULL;
     GList *list3 = NULL;
@@ -29,31 +47,30 @@ gpointer thread_func(gpointer data)
     list4 = g_list_insert(list4, "LED:ON", 1);
     list4 = g_list_insert(list4, "LAN:DHCP", 2);
     list4 = g_list_insert(list4, "Done", 3);
-    
-    g_object_set(G_OBJECT(entry), "interface",       0, 
-                                  "jpeglist",        list1,
-                                  "videolist",         list2,
-                                  "livelist",        list3,
-                                  "systemlist",      list4,
-                                  "select",          -1,
-                                  "network",     NETWORK_WIRE,
-                                  "IPaddr",           "192.168.10.100",
-                                  "battery",          BATTERY_P_100,
-                                  "JpegDisk", "12300",
-                                  "JpegResolution", "8K",
-                                  "JpegShoot", "Standard",
-                                  "JpegFormat",    "JPEG",
-                                  "VideoTime",  "01:30:45",
-                                  "VideoResolution", "8K",
-                                  "VideoBitrate",    "30FPS",
-                                  "VideoFramerate",  "100MB",
-                                  "LiveTime", "00:00:00",
-                                  "LiveResolution", "6K",
-                                  "LiveBitrate",   "60M",
-                                  "LiveFramerate", "20FPS",
-                                  "ImageUrl",       "/test", NULL);
 
-    g_object_get(G_OBJECT(entry), "ImageUrl", &image_route, NULL);
+    oled = g_object_new(OLED_TYPE_SCREEN, "interface",     0, 
+                                        "JpegList",        list1,
+                                        "VideoList",       list2,
+                                        "LiveList",        list3,
+                                        "SystemList",      list4,
+                                        "InterfaceSelect", 0,
+                                        "NetworkMode",     NETWORK_WIRE,
+                                        "IPaddr",          "255.255.255.255",
+                                        "battery",          BATTERY_P_100,
+                                        "JpegDiskSpace",   "123456789",
+                                        "JpegResolution",  "8K",
+                                        "JpegShootMode",   "Standard",
+                                        "JpegFormat",      "JPEG",
+                                        "VideoWorkTime",   "01:30:45",
+                                        "VideoResolution", "8K",
+                                        "VideoBitrate",    "30FPS",
+                                        "VideoFramerate",  "100MB",
+                                        "LiveWorkTime",    "00:00:00",
+                                        "LiveResolution",  "6K",
+                                        "LiveBitrate",     "60M",
+                                        "LiveFramerate",   "20FPS",
+                                        "ImagePath",       "/test", NULL);
+
 //    g_print("PLease input num\n");
 //    scanf("%d", &num);
 //    g_object_set(G_OBJECT(entry), "interface", num, NULL);
@@ -61,19 +78,10 @@ gpointer thread_func(gpointer data)
     list1 = g_list_insert(list1, "Interval:1/5s", 1);
     list2 = g_list_insert(list2, "BitRate:15Mbps", 1);
     list3 = g_list_insert(list3, "FrameRate:26FPS", 2);
-    num = 0;
-#if 1
-    while (1)
-    {
-        g_print("PLease input num\n");
-        scanf("%d", &num);
-        g_object_set(G_OBJECT(entry), "interface", num, NULL);
-    }
-#endif
-}
+    
+    g_timeout_add(100, oled_test, oled);
 
+    loop =  g_main_loop_new(NULL, TRUE);
+    g_main_loop_run(loop);
 
-int main()
-{
-    oled_start();
 }

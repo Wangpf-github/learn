@@ -1,0 +1,63 @@
+电量计类property为：
+    GString *path;
+    gint status;
+    gint capacity;     
+    gint CapacityAlertMax;
+    gint CapacityAlertMin;
+    gint temp;             //单位0.1℃（摄氏度）
+    gint TempAlertMax;
+    gint TempAlertMin;
+
+typedef enum _BatteryStatus
+{
+    BATTERY_UNKNOWN,        //无法打开文件，不能读取电流数据时状态
+    BATTERY_CHARGING,       //读取驱动状态为charging
+    BATTERY_DISCHARGING,    //读取驱动状态为discharging
+    BATTERY_NOT_CHARGING,   //电流为0，并且电量不是100%，说明未充满但是也未充电，可能温度过高触发温度保护
+    BATTERY_FULL            //读取驱动状态为full
+}BatteryStatus;
+
+
+电池温度检测可以精确到0.1摄氏度
+
+电量计类实例同时开启监测电量和温度线程， 当温度或电量超过或低于上下限，发出buttery_alert事件信号， 带参数为BatteryAlert
+
+bq27541_test.c为测试程序
+
+内核修改方式：
+替换linux-4.9.37/drivers/power/supply目录下的bq27xxx_battery.c
+修改设备树:linux-4.9.37/arch/arm64/boot/dts/hisilicon目录下hi3559av100.dtsi
+pinmux: pinmux@1f000000 {
+    （添加）
+    i2c11_pins: pinmux_i2c11_pins {
+                pinctrl-single,pins = <
+                    0x1cf0 0 /* I2C11_SDA */
+                    0x1cf4 0 /* I2C11_SCL */
+                >;
+            };
+};
+
+i2c_bus11: i2c@1211b000 {
+                compatible = "hisilicon,hibvt-i2c";
+                reg = <0x1211b000 0x1000>;
+                clocks = <&clock HI3559AV100_I2C11_CLK>;
+                clock-frequency = <100000>;
+                dmas = <&hiedmacv310_1 22 32>, <&hiedmacv310_1 23 33>;
+                dma-names = "tx","rx";
+                pinctrl-names = "default";
+                pinctrl-0 = <&i2c11_pins>;
+                status = "disabled";
+
+hi3559av100-demb.dts文件中
+&i2c_bus11 {
+    clock-frequency = <400000>;
+    status = "okay";
+    #address-cells = <1>;
+	#size-cells = <0>;
+	bq27541@55 {
+		compatible = "ti,bq27541";
+		reg = <0x55>;
+	};
+};
+
+配置内核： Device Drivers --> power supply class support --> BQ27xxx battery driver 和 BQ27xxx I2C support 两项选中内核加载

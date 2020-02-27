@@ -1,0 +1,54 @@
+#include "push_button.h"
+
+PushButton *bu;
+struct gpiod_line *gpio_led;
+
+void judeg_button_event(PushButton *self, ButtonEvent event, gint release, gpointer data)
+{
+    if (event == BUTTON_EVENT_RELEASE)
+    {
+        printf("release timeout count is %d\n", release);
+        gpiod_line_set_value(gpio_led, 0);
+    }
+    else if(event == BUTTON_EVENT_PRESS)
+    {
+        printf("press timeout count is %d\n", release);
+        gpiod_line_set_value(gpio_led, 1);
+    }
+    
+}
+
+gboolean button_test(gpointer param)
+{
+    printf("button test!\n");
+    return TRUE;
+}
+
+int main()
+{
+    struct gpiod_line *gpio_button;
+    struct gpiod_chip *gpio_chip;
+    GMainLoop *loop;
+
+    gpio_chip = gpiod_chip_open_by_number(19);
+    gpio_button = gpiod_chip_get_line(gpio_chip, 5);   
+    gpio_led = gpiod_chip_get_line(gpio_chip, 7);
+    if (gpio_chip == NULL || gpio_button == NULL || gpio_led == NULL)
+    {
+        printf("open gpio line error\n");
+    }
+
+    gpiod_line_request_output(gpio_led, "gpio-test2", GPIOD_LINE_ACTIVE_STATE_LOW);
+
+    bu = g_object_new(PUSH_TYPE_BUTTON, "gpio", gpio_button, 
+                                        "ReleaseTimeout", 1,
+                                        "PressTimeout", 1,
+                                        NULL);
+
+    g_signal_connect(bu, "button_event", G_CALLBACK (judeg_button_event), NULL);
+
+    g_timeout_add(1000, button_test, NULL);
+
+    loop = g_main_loop_new(NULL, TRUE);
+    g_main_loop_run(loop);
+}
