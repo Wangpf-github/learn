@@ -9,6 +9,8 @@
 #include <time.h>
 #include <gpiod.h>
 #include <unistd.h>
+#include <sys/eventfd.h>
+#include <gpoll.h>
 
 #define PUSH_TYPE_BUTTON (push_button_get_type())
 #define PUSH_BUTTON(object) G_TYPE_CHECK_INSTANCE_CAST((object), PUSH_TYPE_BUTTON, PushButton)

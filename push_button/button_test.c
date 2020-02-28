@@ -2,6 +2,7 @@
 
 PushButton *bu;
 struct gpiod_line *gpio_led;
+int i = 0;
 
 void judeg_button_event(PushButton *self, ButtonEvent event, gint release, gpointer data)
 {
@@ -20,7 +21,13 @@ void judeg_button_event(PushButton *self, ButtonEvent event, gint release, gpoin
 
 gboolean button_test(gpointer param)
 {
-    printf("button test!\n");
+    if(i++ == 10)
+    {
+        g_object_unref(param);
+        return FALSE;
+    }
+
+    printf("button test -- %d!\n", i);
     return TRUE;
 }
 
@@ -47,7 +54,7 @@ int main()
 
     g_signal_connect(bu, "button_event", G_CALLBACK (judeg_button_event), NULL);
 
-    g_timeout_add(1000, button_test, NULL);
+    g_timeout_add(1000, button_test, bu);
 
     loop = g_main_loop_new(NULL, TRUE);
     g_main_loop_run(loop);
