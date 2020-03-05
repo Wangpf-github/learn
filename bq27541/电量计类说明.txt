@@ -1,38 +1,55 @@
 电量计类property为：
-    GString *path;
+    GString *path;         //sysfs路径
     gint status;
     gint capacity;     
     gint CapacityAlertMax;
     gint CapacityAlertMin;
     gint temp;             //单位0.1℃（摄氏度）
-    gint TempAlertMax;
-    gint TempAlertMin;
+    gint TempAlertMax;     //单位0.1℃（摄氏度）
+    gint TempAlertMin;     //单位0.1℃（摄氏度）
+    gint CapacityLevel;    //电量级别，若获取值为BATTERY_CAPACITY_LEVEL_CRITICAL，需要判断当前状态，若为BATTERY_DISCHARGING说明无适配器电源接入，关机
 
+枚举类型：
 typedef enum _BatteryStatus
 {
-    BATTERY_UNKNOWN,        //无法打开文件，不能读取电流数据时状态
+    BATTERY_UNKNOWN,        //无法打开class文件，不能读取电流数据时状态
     BATTERY_CHARGING,       //读取驱动状态为charging
     BATTERY_DISCHARGING,    //读取驱动状态为discharging
-    BATTERY_NOT_CHARGING,   //电流为0，并且电量不是100%，说明未充满但是也未充电，可能温度过高触发温度保护
+    BATTERY_NOT_CHARGING,   //电流为0，并且电量不是100%，说明未充满但是也未充电，可能温度过高触发温度保护,此状态说明有适配器电源接入
     BATTERY_FULL            //读取驱动状态为full
 }BatteryStatus;
 
+typedef enum _BatteryAlert
+{
+    BATTERY_CAPACITY_MAX,
+    BATTERY_CAPACITY_MIN,
+    BATTERY_TEMP_MAX,
+    BATTERY_TEMP_MIN
+}BatteryAlert;
 
-电池温度检测可以精确到0.1摄氏度
+typedef enum _BatteryLevel
+{
+    BATTERY_CAPACITY_LEVEL_FULL,      //读取电量计capacity_level状态
+    BATTERY_CAPACITY_LEVEL_NORMAL,    //读取电量计capacity_level状态
+    BATTERY_CAPACITY_LEVEL_LOW,       //电量低于低电量提醒值
+    BATTERY_CAPACITY_LEVEL_CRITICAL   //电量低于低电量警告值
+}BatteryLevel;
 
-电量计类实例同时开启监测电量和温度线程， 当温度或电量超过或低于上下限，发出buttery_alert事件信号， 带参数为BatteryAlert
+信号：每秒检测一次状态，电量计类实例同时开启监测
+buttery_alert：电量和温度线程， 当温度或电量超过或低于上下限，发出buttery_alert事件信号， 带参数为BatteryAlert
+buttery_level：检测无外电接入时，电量低于10%时，发送信号，参数为BATTERY_CAPACITY_LEVEL_LOW
+                             电量低于5%时，发送信号，参数为BATTERY_CAPACITY_LEVEL_CRITICAL，可以关机
 
 bq27541_test.c为测试程序
 
 内核修改方式：
-替换linux-4.9.37/drivers/power/supply目录下的bq27xxx_battery.c
 修改设备树:linux-4.9.37/arch/arm64/boot/dts/hisilicon目录下hi3559av100.dtsi
 pinmux: pinmux@1f000000 {
     （添加）
     i2c11_pins: pinmux_i2c11_pins {
                 pinctrl-single,pins = <
-                    0x1cf0 0 /* I2C11_SDA */
-                    0x1cf4 0 /* I2C11_SCL */
+                    0x10f0 0 /* I2C11_SDA */
+                    0x10f4 0 /* I2C11_SCL */
                 >;
             };
 };

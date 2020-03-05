@@ -4,6 +4,8 @@
 #include "bq27541_battery.h"
 
 #define BQ27541_BATTERY_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), BQ27541_TYPE_BATTERY, Bq27541BatteryPrivate)
+#define CRITICAL_CAPACITY (5)
+#define LOW_CAPACITY (10)
 
 typedef struct _Bq27541BatteryPrivate
 {
@@ -15,7 +17,7 @@ typedef struct _Bq27541BatteryPrivate
     gint temp;             //单位0.1℃（摄氏度）
     gint TempAlertMax;     //单位0.1℃（摄氏度）
     gint TempAlertMin;     //单位0.1℃（摄氏度）
-
+    gint CapacityLevel;
 }Bq27541BatteryPrivate;
 
 G_DEFINE_TYPE_WITH_CODE (Bq27541Battery, bq27541_battery, G_TYPE_OBJECT, G_ADD_PRIVATE (Bq27541Battery))
@@ -33,6 +35,7 @@ enum
     PROPERTY_TEMP,
     PROPERTY_TEMPALERTMAX,
     PROPERTY_TEMPALERTMIN,
+    PROPERTY_CAPACITYLEVEL,
     N_PROPERTY
 };
 
@@ -40,6 +43,8 @@ gboolean battery_monitor(gpointer data);
 gint get_param_state(gpointer data);
 void get_param_temp();
 gint get_param_capacity();
+gint get_param_current();
+gint get_param_level();
 
 static void bq27541_battery_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
@@ -74,6 +79,9 @@ static void bq27541_battery_set_property(GObject *object, guint property_id, con
     case PROPERTY_TEMPALERTMIN:
         priv->TempAlertMin = g_value_get_int(value);
         break;
+    case PROPERTY_CAPACITYLEVEL:
+        priv->CapacityLevel = g_value_get_int(value);
+        break;
 
     default:
         break;
@@ -91,7 +99,7 @@ static void bq27541_battery_get_property(GObject *object, guint property_id, GVa
         g_value_set_string(value, priv->path->str);
         break;
     case PROPERTY_BATTERYSTATUS:
-        priv->status = get_param_state(self);
+        get_param_state(self);
         g_value_set_int(value, priv->status);
         break;
     case PROPERTY_CAPACITY:
@@ -113,6 +121,10 @@ static void bq27541_battery_get_property(GObject *object, guint property_id, GVa
         break;
     case PROPERTY_TEMPALERTMIN:
         g_value_set_int(value, priv->TempAlertMin);
+        break;
+    case PROPERTY_CAPACITYLEVEL:
+        get_param_level();
+        g_value_set_int(value, priv->CapacityLevel);
         break;
 
     default:
@@ -136,10 +148,22 @@ static void bq27541_battery_class_init(Bq27541BatteryClass *bclass)
     properties[PROPERTY_TEMP] = g_param_spec_int("temp", "Batterytemperature", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
     properties[PROPERTY_TEMPALERTMAX] = g_param_spec_int("TempAlertMax", "Battery temperature max", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
     properties[PROPERTY_TEMPALERTMIN] = g_param_spec_int("TempAlertMin", "Battery temperature max", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
+    properties[PROPERTY_CAPACITYLEVEL] = g_param_spec_int("CapacityLevel", "Capacity Level", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
 
     g_object_class_install_properties(base_class, N_PROPERTY, properties);
 
     g_signal_new("buttery_alert",
+			     G_TYPE_FROM_CLASS(bclass),
+			     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
+			     0,
+			     NULL,
+			     NULL,
+			     g_cclosure_marshal_VOID__INT,
+			     G_TYPE_NONE,
+			     1,
+                 G_TYPE_INT);
+
+    g_signal_new("buttery_level",
 			     G_TYPE_FROM_CLASS(bclass),
 			     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
 			     0,
@@ -158,8 +182,10 @@ static void bq27541_battery_init(Bq27541Battery *self)
 
 gboolean battery_monitor(gpointer data)
 {
-    int battery_capacity, battery_temp;
-    
+    gint battery_capacity, battery_temp, battery_current;
+
+    battery_current = get_param_current();
+    /* 电量检测 */
     g_object_get(G_OBJECT(data), "capacity", &battery_capacity, NULL);
     if(battery_capacity > priv->CapacityAlertMax)
     {
@@ -169,7 +195,7 @@ gboolean battery_monitor(gpointer data)
     {
         g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MIN);
     }
-
+    /* 温度检测 */
     g_object_get(G_OBJECT(data), "temp", &battery_temp, NULL);
     if(battery_temp > priv->TempAlertMax)
     {
@@ -179,78 +205,101 @@ gboolean battery_monitor(gpointer data)
     {
         g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MIN);
     }
+    /* 电量level检测 */
+    if(battery_capacity <= LOW_CAPACITY && battery_capacity > CRITICAL_CAPACITY && battery_current < 0)
+    {
+        g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_LOW);
+    }
+    else if(battery_capacity <= CRITICAL_CAPACITY && battery_current < 0)
+    {
+        g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_CRITICAL);
+    }
 
     return TRUE;
 }
 
 gint get_param_state(gpointer data)
 {
-    gint i;
-    BatteryStatus tmp;
-    gchar buf[20];
-    gchar path_buf[100];
+    BatteryStatus bq27541_state;
+    gchar buf[20] = {0};
+    gchar path_buf[100] = {0};
     gint bq27541_capacity;
-    glong bq27541_current;
-    gint bq27541_length;
-    gchar bq27541_status[15];
+    gint bq27541_current;
+
+    bq27541_current = get_param_current();
+    if(bq27541_current < 0)
+    {
+        printf("Get current error!\n");
+        return -1;
+    }
+    bq27541_capacity = get_param_capacity();
+    if(bq27541_capacity < 0)
+    {
+        printf("Get capacity error!\n");
+        return -1;
+    }
+
+    sprintf(path_buf, "%s/status", priv->path->str);
+    gint status_fd = open(path_buf, O_RDONLY);
+    if(status_fd < 0)
+    {
+        bq27541_state = BATTERY_UNKNOWN;
+    	printf("open dev status error\n");
+        return -1;
+    }
+
+    read(status_fd, buf, 15);
+
+    if(strncmp(buf, "Charging", 8) == 0)
+    {
+        bq27541_state = BATTERY_CHARGING;
+    }
+    else if(strncmp(buf, "Discharging", 11) == 0)
+    {
+        bq27541_state = BATTERY_DISCHARGING;
+    }
+    else if(strncmp(buf, "Full", 4) == 0)
+    {
+        bq27541_state = BATTERY_FULL;
+    }
+
+    if((bq27541_current == 0) && (bq27541_capacity < 100))
+    {
+        bq27541_state = BATTERY_NOT_CHARGING;
+    }
+
+    priv->status = bq27541_state;
+    close(status_fd);
+
+    return bq27541_state;
+}
+
+gint get_param_current()
+{
+    gchar buf[20] = {0};
+    gchar path_buf[100] = {0};
+    gint bq27541_current;
 
     sprintf(path_buf, "%s/current_now", priv->path->str);
-    int current_fd = open(path_buf, O_RDONLY);
+    gint current_fd = open(path_buf, O_RDONLY);
     if(current_fd < 0)
     {
     	printf("open dev current_now error\n");
 	    return -1;
     }
-
-    sprintf(path_buf, "%s/status", priv->path->str);
-    int status_fd = open(path_buf, O_RDONLY);
-    if(status_fd < 0)
-    {
-        tmp = BATTERY_UNKNOWN;
-    	printf("open dev status error\n");
-    }
-
-    memset(buf, 0x0, 20);
+    
     read(current_fd, buf, 9);
     bq27541_current = atoi(buf);
     bq27541_current = bq27541_current/1000;
 
-    memset(buf, 0x0, 20);
-    memset(bq27541_status, 0x0, 10);
-    read(status_fd, buf, 15);
-    bq27541_length = strlen(buf) - 1;
-    for(i = 0; i < bq27541_length; i++)
-    {
-        bq27541_status[i] = buf[i];	
-    }
-
-    if(strncmp(bq27541_status, "Charging", 8) == 0)
-    {
-        tmp = BATTERY_CHARGING;
-    }
-    else if(strncmp(bq27541_status, "Discharging", 11) == 0)
-    {
-        tmp = BATTERY_DISCHARGING;
-    }
-    else if(strncmp(bq27541_status, "Full", 4) == 0)
-    {
-        tmp = BATTERY_FULL;
-    }
-
-    if((bq27541_current == 0) && (get_param_capacity() < 99))
-    {
-        tmp = BATTERY_NOT_CHARGING;
-    }
-
     close(current_fd);
-    close(status_fd);
-    return tmp;
+    return bq27541_current;
 }
 
 void get_param_temp()
 {
-    gchar buf[20];
-    gchar path_buf[100];
+    gchar buf[20] = {0};
+    gchar path_buf[100] = {0};
     gint bq27541_temperature;
 
     sprintf(path_buf, "%s/temp", priv->path->str);
@@ -261,8 +310,7 @@ void get_param_temp()
 	    return;
     }
 
-    memset(buf, 0x0, 20);
-    read(temp_fd, buf, 4);
+    read(temp_fd, buf, 5);
     bq27541_temperature = atoi(buf);
     priv->temp = bq27541_temperature;
 
@@ -272,8 +320,8 @@ void get_param_temp()
 
 gint get_param_capacity()
 {
-    gchar buf[20];
-    gchar path_buf[100];
+    gchar buf[20] = {0};
+    gchar path_buf[100] = {0};
     gint bq27541_capacity;
 
     sprintf(path_buf, "%s/capacity", priv->path->str);
@@ -284,11 +332,55 @@ gint get_param_capacity()
 	    return -1;
     }
 
-    memset(buf, 0x0, 20);
     read(capacity_fd, buf, 4);
     bq27541_capacity = atoi(buf);
     priv->capacity = bq27541_capacity;
 
     close(capacity_fd);
     return bq27541_capacity;
+}
+
+gint get_param_level()
+{
+    gint level;
+    gint length;
+    gchar buf[20] = {0}; 
+    gchar path_buf[100] = {0};
+
+    gint bq27541_capacity;
+
+    bq27541_capacity = get_param_capacity();
+
+    sprintf(path_buf, "%s/capacity_level", priv->path->str);
+    gint level_fd = open(path_buf, O_RDONLY);
+    if(level_fd < 0)
+    {
+    	printf("open dev capacity_level error\n");
+	    return -1;
+    }
+
+    read(level_fd, buf, 10);
+
+    if(strncmp(buf, "full", 4) == 0)
+    {
+        level = BATTERY_CAPACITY_LEVEL_FULL;
+    }
+    else if(strncmp(buf, "normal", 6) == 0)
+    {
+        level = BATTERY_CAPACITY_LEVEL_NORMAL;
+    }
+    
+    if(bq27541_capacity <= LOW_CAPACITY && bq27541_capacity > CRITICAL_CAPACITY)
+    {
+        level = BATTERY_CAPACITY_LEVEL_LOW;
+    }
+    else if(bq27541_capacity <= CRITICAL_CAPACITY)
+    {
+        level = BATTERY_CAPACITY_LEVEL_CRITICAL;
+    }
+
+    priv->CapacityLevel = level;
+
+    close(level_fd);
+    return level;
 }

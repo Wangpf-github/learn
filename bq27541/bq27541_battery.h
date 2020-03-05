@@ -47,6 +47,14 @@ typedef enum _BatteryAlert
     BATTERY_TEMP_MIN
 }BatteryAlert;
 
+typedef enum _BatteryLevel
+{
+    BATTERY_CAPACITY_LEVEL_FULL,
+    BATTERY_CAPACITY_LEVEL_NORMAL,
+    BATTERY_CAPACITY_LEVEL_LOW,
+    BATTERY_CAPACITY_LEVEL_CRITICAL
+}BatteryLevel;
+
 GType bq27541_battery_get_type(void);
 
 #endif
