@@ -1,4 +1,10 @@
-#include "bq27541_battery.h"
+//???aarch64-buildroot-linux-gnu-gcc bq27541_test.c -o battery_test `pkg-config --cflags --libs glib-2.0 gobject-2.0` -I. -L. -lbq27541
+
+#include <bq27541_battery.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 void judeg_battery_event(Bq27541Battery *bq, BatteryAlert alert, gpointer data)
 {
@@ -32,7 +38,7 @@ void judeg_battery_level(Bq27541Battery *bq, gint level, gpointer data)
         printf("+++++++++Level less than 10%%!++++++\n");
         break;
     case BATTERY_CAPACITY_LEVEL_CRITICAL:
-        printf("+++++++++Level less than min!++++++\n");
+        printf("+++++++++Level less than 5%%!++++++\n");
         break;
     
     default:
@@ -74,7 +80,7 @@ gboolean battery_test(gpointer bq)
     g_object_get(G_OBJECT(bq), "temp", &btemp, NULL);
     printf("Temperature is %d.\n", btemp);
 
-    g_object_get(G_OBJECT(bq), "temp", &blevel, NULL);
+    g_object_get(G_OBJECT(bq), "CapacityLevel", &blevel, NULL);
     switch (blevel)
     {
     case BATTERY_CAPACITY_LEVEL_FULL:
@@ -103,10 +109,11 @@ int main()
     Bq27541Battery *bq;
 
     bq = g_object_new(BQ27541_TYPE_BATTERY, "path", "/sys/class/power_supply/bq27541-0",
-                                                 "CapacityAlertMax", 95,
-                                                 "CapacityAlertMin", 5,
-                                                 "TempAlertMax",  500,
-                                                 "TempAlertMin", 0, NULL);
+                                            "CapacityAlertMax", 95,
+                                            "CapacityAlertMin", 10,
+                                            "TempAlertMax",     430,
+                                            "TempAlertMin",     50, 
+                                            NULL);
 
     g_signal_connect(bq, "buttery_alert", G_CALLBACK (judeg_battery_event), NULL);
     g_signal_connect(bq, "buttery_level", G_CALLBACK (judeg_battery_level), NULL);

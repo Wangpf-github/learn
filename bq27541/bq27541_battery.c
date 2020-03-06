@@ -1,13 +1,23 @@
 //export PATH=/home/wang/hi3559av_buitroot/buildroot-env/output/host/bin:$PATH
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/host/lib/pkgconfig/:$PATH
-//编译：aarch64-buildroot-linux-gnu-gcc bq27541_battery.c bq27541_test.c -o battery_test `pkg-config --cflags --libs glib-2.0 gobject-2.0`
-#include "bq27541_battery.h"
+//编译库：aarch64-buildroot-linux-gnu-gcc bq27541_battery.c -shared -fPIC -o libbq27541.so `pkg-config --cflags --libs glib-2.0 gobject-2.0` -I/home/wang/git_file/learn/bq27541
+#include <bq27541_battery.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
 
 #define BQ27541_BATTERY_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), BQ27541_TYPE_BATTERY, Bq27541BatteryPrivate)
 #define CRITICAL_CAPACITY (5)
 #define LOW_CAPACITY (10)
 
-typedef struct _Bq27541BatteryPrivate
+struct _Bq27541BatteryPrivate
 {
     GString *path;
     gint status;
@@ -18,11 +28,14 @@ typedef struct _Bq27541BatteryPrivate
     gint TempAlertMax;     //单位0.1℃（摄氏度）
     gint TempAlertMin;     //单位0.1℃（摄氏度）
     gint CapacityLevel;
-}Bq27541BatteryPrivate;
+};
 
 G_DEFINE_TYPE_WITH_CODE (Bq27541Battery, bq27541_battery, G_TYPE_OBJECT, G_ADD_PRIVATE (Bq27541Battery))
 
 Bq27541BatteryPrivate *priv;
+gint capacity_flag;
+gint temp_flag;
+gint level_flag;
 
 enum
 {
@@ -37,6 +50,13 @@ enum
     PROPERTY_TEMPALERTMIN,
     PROPERTY_CAPACITYLEVEL,
     N_PROPERTY
+};
+
+enum FLAG
+{
+    FLAG_0,
+    FLAG_1,
+    FLAG_2
 };
 
 gboolean battery_monitor(gpointer data);
@@ -143,11 +163,11 @@ static void bq27541_battery_class_init(Bq27541BatteryClass *bclass)
     properties[PROPERTY_PATH] = g_param_spec_string("path", "path", "sysfs path", NULL, G_PARAM_READWRITE);
     properties[PROPERTY_BATTERYSTATUS] = g_param_spec_int("status", NULL, NULL, 0, G_MAXINT32, 0,  G_PARAM_READWRITE);
     properties[PROPERTY_CAPACITY] = g_param_spec_int("capacity", "capacity", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
-    properties[PROPERTY_CAPACITYALERTMAX] = g_param_spec_int("CapacityAlertMax", "CapacityAlertMax", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
-    properties[PROPERTY_CAPACITYALERTMIN] = g_param_spec_int("CapacityAlertMin", "CapacityAlertMin", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
+    properties[PROPERTY_CAPACITYALERTMAX] = g_param_spec_int("CapacityAlertMax", "CapacityAlertMax", NULL, 0, G_MAXINT32, 98, G_PARAM_READWRITE);
+    properties[PROPERTY_CAPACITYALERTMIN] = g_param_spec_int("CapacityAlertMin", "CapacityAlertMin", NULL, 0, G_MAXINT32, 10, G_PARAM_READWRITE);
     properties[PROPERTY_TEMP] = g_param_spec_int("temp", "Batterytemperature", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
-    properties[PROPERTY_TEMPALERTMAX] = g_param_spec_int("TempAlertMax", "Battery temperature max", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
-    properties[PROPERTY_TEMPALERTMIN] = g_param_spec_int("TempAlertMin", "Battery temperature max", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
+    properties[PROPERTY_TEMPALERTMAX] = g_param_spec_int("TempAlertMax", "Battery temperature max", NULL, 0, G_MAXINT32, 450, G_PARAM_READWRITE);
+    properties[PROPERTY_TEMPALERTMIN] = g_param_spec_int("TempAlertMin", "Battery temperature min", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
     properties[PROPERTY_CAPACITYLEVEL] = g_param_spec_int("CapacityLevel", "Capacity Level", NULL, 0, G_MAXINT32, 0, G_PARAM_READWRITE);
 
     g_object_class_install_properties(base_class, N_PROPERTY, properties);
@@ -177,6 +197,9 @@ static void bq27541_battery_class_init(Bq27541BatteryClass *bclass)
 
 static void bq27541_battery_init(Bq27541Battery *self)
 {
+    capacity_flag = 1;
+    temp_flag = 1;
+    level_flag = 2;
     g_timeout_add(1000, battery_monitor, self);
 }
 
@@ -187,32 +210,70 @@ gboolean battery_monitor(gpointer data)
     battery_current = get_param_current();
     /* 电量检测 */
     g_object_get(G_OBJECT(data), "capacity", &battery_capacity, NULL);
-    if(battery_capacity > priv->CapacityAlertMax)
+    if(battery_capacity >= priv->CapacityAlertMax)
     {
-        g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MAX);
+        if(capacity_flag == FLAG_1)
+        {
+            g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MAX);
+            capacity_flag = FLAG_0;
+        }
     }
-    else if(battery_capacity < priv->CapacityAlertMin)
+    else if(battery_capacity <= priv->CapacityAlertMin)
     {
-        g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MIN);
+        if(capacity_flag == FLAG_1)
+        {
+            g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MIN);
+            capacity_flag = FLAG_0;
+        }
     }
+    else
+    {
+        capacity_flag = FLAG_1;   //标志为1表示正常范围，0为超限范围
+    }
+    
     /* 温度检测 */
     g_object_get(G_OBJECT(data), "temp", &battery_temp, NULL);
-    if(battery_temp > priv->TempAlertMax)
+    if(battery_temp >= priv->TempAlertMax)
     {
-        g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MAX);
+        if(temp_flag == FLAG_1)
+        {
+            g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MAX);
+            temp_flag = FLAG_0;
+        }
     }
-    else if(battery_temp < priv->TempAlertMin)
+    else if(battery_temp <= priv->TempAlertMin)
     {
-        g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MIN);
+        if(temp_flag == FLAG_1)
+        {
+            g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MIN);
+            temp_flag = FLAG_0;
+        }
     }
+    else
+    {
+        temp_flag = FLAG_1;
+    }
+    
     /* 电量level检测 */
     if(battery_capacity <= LOW_CAPACITY && battery_capacity > CRITICAL_CAPACITY && battery_current < 0)
     {
-        g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_LOW);
+        if(level_flag == FLAG_2)
+        {
+            g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_LOW);
+            level_flag = FLAG_1;
+        }
     }
     else if(battery_capacity <= CRITICAL_CAPACITY && battery_current < 0)
     {
-        g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_CRITICAL);
+        if(level_flag > 0)
+        {
+            g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_CRITICAL);
+            level_flag = FLAG_0;
+        }
+    }
+    else if(battery_capacity > LOW_CAPACITY || battery_current >= 0)
+    {
+        level_flag = FLAG_2;   //标志位，2为正常范围，1为低电压提示，0为低电压报警
     }
 
     return TRUE;
@@ -227,11 +288,6 @@ gint get_param_state(gpointer data)
     gint bq27541_current;
 
     bq27541_current = get_param_current();
-    if(bq27541_current < 0)
-    {
-        printf("Get current error!\n");
-        return -1;
-    }
     bq27541_capacity = get_param_capacity();
     if(bq27541_capacity < 0)
     {
@@ -361,11 +417,11 @@ gint get_param_level()
 
     read(level_fd, buf, 10);
 
-    if(strncmp(buf, "full", 4) == 0)
+    if(strncmp(buf, "Full", 4) == 0)
     {
         level = BATTERY_CAPACITY_LEVEL_FULL;
     }
-    else if(strncmp(buf, "normal", 6) == 0)
+    else if(strncmp(buf, "Normal", 6) == 0)
     {
         level = BATTERY_CAPACITY_LEVEL_NORMAL;
     }
