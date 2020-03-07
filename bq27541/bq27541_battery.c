@@ -13,7 +13,7 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
-#define BQ27541_BATTERY_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), BQ27541_TYPE_BATTERY, Bq27541BatteryPrivate)
+#define BQ27541_BATTERY_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), TYPE_BQ27541_BATTERY, Bq27541BatteryPrivate)
 #define CRITICAL_CAPACITY (5)
 #define LOW_CAPACITY (10)
 
@@ -172,7 +172,7 @@ static void bq27541_battery_class_init(Bq27541BatteryClass *bclass)
 
     g_object_class_install_properties(base_class, N_PROPERTY, properties);
 
-    g_signal_new("buttery_alert",
+    g_signal_new("battery-alert",
 			     G_TYPE_FROM_CLASS(bclass),
 			     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
 			     0,
@@ -183,7 +183,7 @@ static void bq27541_battery_class_init(Bq27541BatteryClass *bclass)
 			     1,
                  G_TYPE_INT);
 
-    g_signal_new("buttery_level",
+    g_signal_new("battery-level",
 			     G_TYPE_FROM_CLASS(bclass),
 			     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
 			     0,
@@ -214,7 +214,7 @@ gboolean battery_monitor(gpointer data)
     {
         if(capacity_flag == FLAG_1)
         {
-            g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MAX);
+            g_signal_emit_by_name(data, "battery-alert", BATTERY_ALERT_CAPACITY_MAX);
             capacity_flag = FLAG_0;
         }
     }
@@ -222,7 +222,7 @@ gboolean battery_monitor(gpointer data)
     {
         if(capacity_flag == FLAG_1)
         {
-            g_signal_emit_by_name(data, "buttery_alert", BATTERY_CAPACITY_MIN);
+            g_signal_emit_by_name(data, "battery-alert", BATTERY_ALERT_CAPACITY_MIN);
             capacity_flag = FLAG_0;
         }
     }
@@ -237,7 +237,7 @@ gboolean battery_monitor(gpointer data)
     {
         if(temp_flag == FLAG_1)
         {
-            g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MAX);
+            g_signal_emit_by_name(data, "battery-alert", BATTERY_ALERT_TEMP_MAX);
             temp_flag = FLAG_0;
         }
     }
@@ -245,7 +245,7 @@ gboolean battery_monitor(gpointer data)
     {
         if(temp_flag == FLAG_1)
         {
-            g_signal_emit_by_name(data, "buttery_alert", BATTERY_TEMP_MIN);
+            g_signal_emit_by_name(data, "battery-alert", BATTERY_ALERT_TEMP_MIN);
             temp_flag = FLAG_0;
         }
     }
@@ -259,7 +259,7 @@ gboolean battery_monitor(gpointer data)
     {
         if(level_flag == FLAG_2)
         {
-            g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_LOW);
+            g_signal_emit_by_name(data, "battery-level", BATTERY_CAPACITY_LEVEL_LOW);
             level_flag = FLAG_1;
         }
     }
@@ -267,7 +267,7 @@ gboolean battery_monitor(gpointer data)
     {
         if(level_flag > 0)
         {
-            g_signal_emit_by_name(data, "buttery_level", BATTERY_CAPACITY_LEVEL_CRITICAL);
+            g_signal_emit_by_name(data, "battery-level", BATTERY_CAPACITY_LEVEL_CRITICAL);
             level_flag = FLAG_0;
         }
     }
@@ -299,7 +299,7 @@ gint get_param_state(gpointer data)
     gint status_fd = open(path_buf, O_RDONLY);
     if(status_fd < 0)
     {
-        bq27541_state = BATTERY_UNKNOWN;
+        bq27541_state = BATTERY_STATUS_UNKNOWN;
     	printf("open dev status error\n");
         return -1;
     }
@@ -308,20 +308,20 @@ gint get_param_state(gpointer data)
 
     if(strncmp(buf, "Charging", 8) == 0)
     {
-        bq27541_state = BATTERY_CHARGING;
+        bq27541_state = BATTERY_STATUS_CHARGING;
     }
     else if(strncmp(buf, "Discharging", 11) == 0)
     {
-        bq27541_state = BATTERY_DISCHARGING;
+        bq27541_state = BATTERY_STATUS_DISCHARGING;
     }
     else if(strncmp(buf, "Full", 4) == 0)
     {
-        bq27541_state = BATTERY_FULL;
+        bq27541_state = BATTERY_STATUS_FULL;
     }
 
     if((bq27541_current == 0) && (bq27541_capacity < 100))
     {
-        bq27541_state = BATTERY_NOT_CHARGING;
+        bq27541_state = BATTERY_STATUS_NOT_CHARGING;
     }
 
     priv->status = bq27541_state;

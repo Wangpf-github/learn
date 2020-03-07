@@ -1,13 +1,16 @@
 
+版本：1_02
+修改信号命名，修改头文件中BQ27541_TYPE_BATTERY为TYPE_BQ27541_BATTERY
+
 电量计类property为：
     GString *path;          //sysfs路径
     gint status;
     gint capacity;     
-    gint CapacityAlertMax;  //电量上限报警值，默认值98
-    gint CapacityAlertMin;  //电量下限报警值，默认值10
+    gint CapacityAlertMax;  //电量上限报警值
+    gint CapacityAlertMin;  //电量下限报警值
     gint temp;              //单位0.1℃（摄氏度）
-    gint TempAlertMax;      //电温度上限报警值，默认值450，单位0.1℃（摄氏度）
-    gint TempAlertMin;      //电温度上限报警值，默认值0，单位0.1℃（摄氏度）
+    gint TempAlertMax;      //电温度上限报警值，单位0.1℃（摄氏度）
+    gint TempAlertMin;      //电温度上限报警值，单位0.1℃（摄氏度）
     gint CapacityLevel;     //电量级别，若获取值为BATTERY_CAPACITY_LEVEL_CRITICAL，需要判断当前状态，若为BATTERY_DISCHARGING说明无适配器电源接入，关机
 
 枚举类型：
@@ -37,9 +40,9 @@ typedef enum _BatteryLevel
 }BatteryLevel;
 
 信号：每秒检测一次状态，电量计类实例同时开启监测
-buttery_alert：电量和温度线程， 当温度或电量超过或低于上下限，发出buttery_alert事件信号， 带参数为BatteryAlert
+buttery-alert：电量和温度线程， 当温度或电量超过或低于上下限，发出buttery_alert事件信号， 带参数为BatteryAlert
                此信号不检测有无外部电源，只要电量低或高于限值即发送信号
-buttery_level：检测无外电接入时，电量低于10%时，发送信号，参数为BATTERY_CAPACITY_LEVEL_LOW
+buttery-level：检测无外电接入时，电量低于10%时，发送信号，参数为BATTERY_CAPACITY_LEVEL_LOW
                               电量低于5%时，发送信号，参数为BATTERY_CAPACITY_LEVEL_CRITICAL，可以关机
                (如果处于提醒或警报电量，外部电源从接入状态转换到撤除状态，也会触发信号)
 

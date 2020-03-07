@@ -10,16 +10,16 @@ void judeg_battery_event(Bq27541Battery *bq, BatteryAlert alert, gpointer data)
 {
     switch (alert)
     {
-    case BATTERY_CAPACITY_MAX:
+    case BATTERY_ALERT_CAPACITY_MAX:
         printf("-----Capacity over max!-----\n");
         break;
-    case BATTERY_CAPACITY_MIN:
+    case BATTERY_ALERT_CAPACITY_MIN:
         printf("-----Capacity less than min!-----\n");
         break;
-    case BATTERY_TEMP_MAX:
+    case BATTERY_ALERT_TEMP_MAX:
         printf("-----Temperature is too high!-----\n");
         break;
-    case BATTERY_TEMP_MIN:
+    case BATTERY_ALERT_TEMP_MIN:
         printf("-----Temperature is too low!-----\n");
         break;
     
@@ -60,16 +60,19 @@ gboolean battery_test(gpointer bq)
     g_object_get(G_OBJECT(bq), "status", &bstate, NULL);
     switch (bstate)
     {
-    case BATTERY_CHARGING:
+    case BATTERY_STATUS_UNKNOWN:
+        printf("State is unknown\n");
+        break;
+    case BATTERY_STATUS_CHARGING:
         printf("State is charging\n");
         break;
-    case BATTERY_DISCHARGING:
+    case BATTERY_STATUS_DISCHARGING:
         printf("State is discharging\n");
         break;
-    case BATTERY_NOT_CHARGING:
+    case BATTERY_STATUS_NOT_CHARGING:
         printf("State is not-charging\n");
         break;
-    case BATTERY_FULL:
+    case BATTERY_STATUS_FULL:
         printf("State is FULL\n");
         break;
     
@@ -108,15 +111,15 @@ int main()
     GMainLoop *loop;
     Bq27541Battery *bq;
 
-    bq = g_object_new(BQ27541_TYPE_BATTERY, "path", "/sys/class/power_supply/bq27541-0",
+    bq = g_object_new(TYPE_BQ27541_BATTERY, "path", "/sys/class/power_supply/bq27541-0",
                                             "CapacityAlertMax", 95,
                                             "CapacityAlertMin", 10,
                                             "TempAlertMax",     430,
                                             "TempAlertMin",     50, 
                                             NULL);
 
-    g_signal_connect(bq, "buttery_alert", G_CALLBACK (judeg_battery_event), NULL);
-    g_signal_connect(bq, "buttery_level", G_CALLBACK (judeg_battery_level), NULL);
+    g_signal_connect(bq, "buttery-alert", G_CALLBACK (judeg_battery_event), NULL);
+    g_signal_connect(bq, "buttery-level", G_CALLBACK (judeg_battery_level), NULL);
 
     g_timeout_add(1000, battery_test, bq);
 
