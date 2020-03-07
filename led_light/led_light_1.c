@@ -1,6 +1,6 @@
 //export PATH=/home/wang/hi3559av_buitroot/buildroot-env/output/host/bin:$PATH
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/host/lib/pkgconfig/:$PATH
-//编译：aarch64-buildroot-linux-gnu-gcc led_light.c led_test.c -o led_test `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod`
+//编译：aarch64-buildroot-linux-gnu-gcc led_light_1.c led_test.c -o led_test `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod`
 
 #include "led_light.h"
 
@@ -21,7 +21,9 @@ typedef struct _LedLightPrivate
 G_DEFINE_TYPE_WITH_CODE (LedLight, led_light, G_TYPE_OBJECT, G_ADD_PRIVATE (LedLight))
 
 LedLightPrivate *priv;
-static GThread *thread;
+gint gpioset_ret;
+gint default_flag;
+gint opposite_flag;
 
 enum
 {
@@ -38,7 +40,6 @@ enum
 
 void judge_led_state(gpointer data);
 void judge_led_pattern(gpointer data);
-void delay_time(gint delay);
 
 static void led_light_dispose (GObject *gobject)
 {
@@ -143,7 +144,7 @@ static void led_light_class_init(LedLightClass *lclass)
 
     g_object_class_install_properties(base_class, N_PROPERTY, properties);
 
-    g_signal_new("blink_end",
+    g_signal_new("blink-end",
 			     G_TYPE_FROM_CLASS(lclass),
 			     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
 			     0,
@@ -165,11 +166,21 @@ void judge_led_state(gpointer data)
 {
     if(priv->state == LED_STATE_OFF)   //判断LED状态
     {
-        gpiod_line_set_value(priv->gpio, LED_STATE_OFF);
+        gpioset_ret = gpiod_line_set_value(priv->gpio, LED_STATE_OFF);
+        if (gpioset_ret < 0)
+        {
+            perror("gpiod_line_set_value");
+            return;
+        }
     }
     else if(priv->state == LED_STATE_ON)
     {
-        gpiod_line_set_value(priv->gpio, LED_STATE_ON);
+        gpioset_ret = gpiod_line_set_value(priv->gpio, LED_STATE_ON);
+        if (gpioset_ret < 0)
+        {
+            perror("gpiod_line_set_value");
+            return;
+        }
     }
     else
     {
@@ -179,73 +190,129 @@ void judge_led_state(gpointer data)
     return ;
 }
 
-gpointer thread_led_pattern(gpointer data)
+gboolean blink_default_start(gpointer data)
 {
-    int i;
     LedPattern led_pattern;
     LedState led_state;
     led_pattern = LED_PATTERN_NONE;
+
+    if(gpioset_ret < 0)  //判断gpio设置是否成功
+    {
+        return FALSE;        
+    }
+
+    if(default_flag++ == priv->BlinkCount)
+    {
+        led_state = priv->BlinkDefaultState;
+        g_object_set(G_OBJECT(data), "state", led_state, NULL);
+        g_object_set(G_OBJECT(data), "pattern", led_pattern, NULL);
+        g_signal_emit_by_name(data, "blink-end");
+        return FALSE;
+    }
+    
+    if (priv->pattern == LED_PATTERN_NONE)
+    {
+        g_object_set(G_OBJECT(data), "state", priv->state, NULL);
+        g_signal_emit_by_name(data, "blink-end");
+        return FALSE;
+    }
+
+    led_state = priv->BlinkDefaultState;
+    g_object_set(G_OBJECT(data), "state", led_state, NULL);
+
+    return TRUE;
+}
+
+gboolean blink_opposite_continue(gpointer data)
+{
+    LedState led_state;
+
+    if(gpioset_ret < 0)  //判断gpio设置是否成功
+    {
+        return FALSE;        
+    }
+
+    if(opposite_flag++ == priv->BlinkCount)
+    {
+        return FALSE;
+    }
+
+    if (priv->pattern == LED_PATTERN_NONE)
+    {
+        g_object_set(G_OBJECT(data), "state", priv->BlinkDefaultState, NULL);
+        return FALSE;
+    }
+    
+    if (priv->BlinkDefaultState == LED_STATE_OFF)
+    {
+        led_state = LED_STATE_ON;
+        g_object_set(G_OBJECT(data), "state", led_state, NULL);
+    }
+    else if(priv->BlinkDefaultState == LED_STATE_ON)
+    {
+        led_state = LED_STATE_OFF;
+        g_object_set(G_OBJECT(data), "state", led_state, NULL);
+    }
+    else
+    {
+        printf("BlinkDefaultState param wrong!\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+gboolean blink_opposite_start(gpointer data)
+{
+    LedState led_state;
+
+    if(gpioset_ret < 0)  //判断gpio设置是否成功
+    {
+        return FALSE;        
+    }
+
+    opposite_flag++;
+    
+    if (priv->BlinkDefaultState == LED_STATE_OFF)
+    {
+        led_state = LED_STATE_ON;
+        g_object_set(G_OBJECT(data), "state", led_state, NULL);
+    }
+    else if(priv->BlinkDefaultState == LED_STATE_ON)
+    {
+        led_state = LED_STATE_OFF;
+        g_object_set(G_OBJECT(data), "state", led_state, NULL);
+    }
+    else
+    {
+        printf("BlinkDefaultState param wrong!\n");
+        return FALSE;
+    }
+
+    g_timeout_add(priv->BlinkInterval, blink_opposite_continue, data);
+
+    return FALSE;
+}
+
+void judge_led_pattern(gpointer data)
+{
+    LedState led_state;
     if(priv->pattern == LED_PATTERN_BLINK)   //判断闪烁模式
     {
         if (priv->BlinkInterval <= priv->BlinkDuration)
         {
             printf("BlinkDuration should less then BlinkInterval!\n");
-            return NULL;
+            return ;
         }
-        
-        for (i = 0; i < priv->BlinkCount; i++)    //闪烁循环
-        {   
-            if (priv->pattern == LED_PATTERN_NONE)
-            {
-                g_object_set(G_OBJECT(data), "state", priv->state, NULL);
-                g_signal_emit_by_name(data, "blink_end");
-                g_thread_exit(NULL);
-            }
-            
-            led_state = priv->BlinkDefaultState;
-            g_object_set(G_OBJECT(data), "state", led_state, NULL);
-            delay_time(priv->BlinkDuration);
-            if (priv->BlinkDefaultState == LED_STATE_OFF)
-            {
-                if (priv->pattern == LED_PATTERN_NONE)
-                {
-                    g_object_set(G_OBJECT(data), "state", priv->state, NULL);
-                    g_signal_emit_by_name(data, "blink_end");
-                    g_thread_exit(NULL);
-                }
-                led_state = LED_STATE_ON;
-                g_object_set(G_OBJECT(data), "state", led_state, NULL);
-                delay_time(priv->BlinkInterval - priv->BlinkDuration);
-            }
-            else if(priv->BlinkDefaultState == LED_STATE_ON)
-            {
-                if (priv->pattern == LED_PATTERN_NONE)
-                {
-                    g_object_set(G_OBJECT(data), "state", priv->state, NULL);
-                    g_signal_emit_by_name(data, "blink_end");
-                    g_thread_exit(NULL);
-                }
-                led_state = LED_STATE_OFF;
-                g_object_set(G_OBJECT(data), "state", led_state, NULL);
-                delay_time(priv->BlinkInterval - priv->BlinkDuration);
-            }
-            else
-            {
-                printf("BlinkDefaultState param wrong!\n");
-                return NULL;
-            }
-        }
-        g_signal_emit_by_name(data, "blink_end");
-        if (priv->BlinkDefaultState == LED_STATE_ON)
-        {
-            led_state = LED_STATE_ON;
-        }
-        else if(priv->BlinkDefaultState == LED_STATE_OFF)
-        {
-            led_state = LED_STATE_OFF;
-        }
+
+        led_state = priv->BlinkDefaultState;
         g_object_set(G_OBJECT(data), "state", led_state, NULL);
-        g_object_set(G_OBJECT(data), "pattern", led_pattern, NULL);
+        
+        default_flag = 1;
+        opposite_flag = 0;
+
+        g_timeout_add(priv->BlinkInterval, blink_default_start, data);
+        g_timeout_add(priv->BlinkDuration, blink_opposite_start, data);
     }
     else if(priv->pattern == LED_PATTERN_NONE)
     {
@@ -254,18 +321,6 @@ gpointer thread_led_pattern(gpointer data)
     else
     {
         printf("LED pattern param wrong!\n");
-        return NULL;
+        return ;
     }
-    g_thread_exit(NULL);
-}
-
-void judge_led_pattern(gpointer data)
-{
-    thread = g_thread_new("func", thread_led_pattern, data);
-}
-
-void delay_time(gint delay)
-{
-    usleep(delay * 1000);
-    return ;
 }
