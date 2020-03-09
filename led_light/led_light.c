@@ -27,6 +27,7 @@ gint opposite_flag;  //判断闪烁次数标志位
 guint default_id;
 guint opposite_id;
 guint opposite_continue_id;  //event source ID
+gint last_pattern_state;
 
 enum
 {
@@ -210,13 +211,12 @@ gboolean blink_default_start(gpointer data)
         g_object_set(G_OBJECT(data), "state", led_state, NULL);
         g_object_set(G_OBJECT(data), "pattern", led_pattern, NULL);
         g_signal_emit_by_name(data, "blink-end");
+        last_pattern_state = LED_PATTERN_NONE;
         return FALSE;
     }
     
     if (priv->pattern == LED_PATTERN_NONE)  //闪烁被停止闪烁信号打断
     {
-        g_object_set(G_OBJECT(data), "state", priv->state, NULL);
-        g_signal_emit_by_name(data, "blink-end");
         return FALSE;
     }
 
@@ -242,7 +242,6 @@ gboolean blink_opposite_continue(gpointer data)
 
     if (priv->pattern == LED_PATTERN_NONE)   
     {
-        g_object_set(G_OBJECT(data), "state", priv->BlinkDefaultState, NULL);
         return FALSE;
     }
     
@@ -274,6 +273,11 @@ gboolean blink_opposite_start(gpointer data)
         return FALSE;        
     }
 
+    if (priv->pattern == LED_PATTERN_NONE)   
+    {
+        return FALSE;
+    }
+
     opposite_flag++;
     
     if (priv->BlinkDefaultState == LED_STATE_OFF)
@@ -303,6 +307,7 @@ void judge_led_pattern(gpointer data)
     GSource *d_source, *o_source;
     if(priv->pattern == LED_PATTERN_BLINK)   //判断闪烁模式
     {
+        last_pattern_state = LED_PATTERN_BLINK;
         if (priv->BlinkInterval <= priv->BlinkDuration)
         {
             g_print("BlinkDuration should less then BlinkInterval!\n");
@@ -337,7 +342,13 @@ void judge_led_pattern(gpointer data)
     }
     else if(priv->pattern == LED_PATTERN_NONE)
     {
-
+        g_object_set(G_OBJECT(data), "state", priv->state, NULL);
+        if(last_pattern_state == LED_PATTERN_BLINK)   //检测上次闪烁状态
+        {
+            g_signal_emit_by_name(data, "blink-end");
+            last_pattern_state = LED_PATTERN_NONE;
+        }
+        
     }
     else
     {
