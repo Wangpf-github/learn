@@ -2,21 +2,10 @@
 #define _ANYWHERE_OLED_H_
 
 #include <glib-object.h>
-#include <cairo/cairo.h>
-#include <fcntl.h>
-#include <linux/types.h>
-#include <linux/ioctl.h>
-#include <linux/fb.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <string.h>
 #include <glib.h>
 
-#define OLED_TYPE_SCREEN (oled_screen_get_type())
-//强制转换，GObject基类转换为本子类
-#define OLED_SCREEN(object) G_TYPE_CHECK_INSTANCE_CAST((object), OLED_TYPE_SCREEN, OledScreen)
+#define TYPE_OLED_SCREEN (oled_screen_get_type())
+#define OLED_SCREEN(object) G_TYPE_CHECK_INSTANCE_CAST((object), TYPE_OLED_SCREEN, OledScreen)
 
 /* 结构体 */
 typedef struct _OledScreen

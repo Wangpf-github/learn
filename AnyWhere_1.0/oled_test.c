@@ -1,4 +1,16 @@
-#include "AnyWhere_oled.h"
+//aarch64-buildroot-linux-gnu-gcc oled_test.c -o oled_test `pkg-config --libs --cflags glib-2.0 gobject-2.0` -I. -L. -loled_display
+
+#include <oled_display.h>
+#include <cairo/cairo.h>
+#include <fcntl.h>
+#include <linux/types.h>
+#include <linux/ioctl.h>
+#include <linux/fb.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <string.h>
 
 gboolean oled_test(gpointer data)
 {
@@ -48,7 +60,7 @@ int main()
     list4 = g_list_insert(list4, "LAN:DHCP", 2);
     list4 = g_list_insert(list4, "Done", 3);
 
-    oled = g_object_new(OLED_TYPE_SCREEN, "interface",     0, 
+    oled = g_object_new(TYPE_OLED_SCREEN, "interface",     0, 
                                         "JpegList",        list1,
                                         "VideoList",       list2,
                                         "LiveList",        list3,

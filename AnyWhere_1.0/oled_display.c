@@ -1,10 +1,20 @@
 //export PATH=/home/wang/hi3559av_buitroot/buildroot-env/output/host/bin:$PATH
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/host/lib/pkgconfig/:$PATH
-//aarch64-buildroot-linux-gnu-gcc AnyWhere_oled.c AnyWhere_test.c -o oled_test -lcairo `pkg-config --libs --cflags cairo glib-2.0 gobject-2.0` -I/home/linux/git/buildroot-env/output/host/lib/glib-2.0/include/ -I/home/linux/git/buildroot-env/output/host/include/glib-2.0/
+//aarch64-buildroot-linux-gnu-gcc oled_display.c -shared -fPIC -o liboled_display.so `pkg-config --libs --cflags cairo glib-2.0 gobject-2.0` -I.
 
-#include "AnyWhere_oled.h"
+#include <oled_display.h>
+#include <cairo/cairo.h>
+#include <fcntl.h>
+#include <linux/types.h>
+#include <linux/ioctl.h>
+#include <linux/fb.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define OLED_SCREEN_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), OLED_TYPE_SCREEN, OledScreenPrivate)
+#define OLED_SCREEN_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), TYPE_OLED_SCREEN, OledScreenPrivate)
 #define WIDTH  (128)
 #define HIGH   (64)
 
@@ -992,6 +1002,7 @@ gint show_mp4_setting(gpointer data)
 
 gint show_live_state(gpointer data)
 {
+    gint live_state_length;
     gchar *ip_addr, *worktime, *resolution, *bitrate, *framerate;
     g_object_get(G_OBJECT (data), "IPaddr", &ip_addr, "LiveWorkTime", &worktime, "LiveResolution", &resolution,
                                                        "LiveBitrate", &bitrate, "LiveFramerate", &framerate, NULL);
@@ -1026,7 +1037,31 @@ gint show_live_state(gpointer data)
     cairo_select_font_face(cr5, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr5, 22.0);
     cairo_set_source_rgb(cr5, 1.0, 1.0, 1.0); 
-    cairo_move_to(cr5, 35.0, 40.0);     //工作时间 35.0, 40.0
+    live_state_length = strlen(worktime);
+    switch (live_state_length)
+    {
+    case 4:
+        cairo_move_to(cr5, 55.0, 39.0);     //工作时间
+        break;
+    case 5:
+        cairo_move_to(cr5, 51.0, 39.0);
+        break;
+    case 6:
+        cairo_move_to(cr5, 45.0, 39.0);
+        break;
+    case 7:
+        cairo_move_to(cr5, 38.0, 39.0);
+        break;
+    case 8:
+        cairo_move_to(cr5, 33.0, 39.0);
+        break;
+    case 9:
+        cairo_move_to(cr5, 28.0, 39.0);
+        break;
+    
+    default:
+        break;
+    }  
     cairo_show_text(cr5, worktime);
     cairo_select_font_face(cr6, "TerminusTTF", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
     cairo_set_font_size(cr6, 14.0);

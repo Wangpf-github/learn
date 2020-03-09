@@ -1,4 +1,4 @@
-OLED类property为：
+property：
     guint interface;               #画面切换：  0.开机状态
                                                  1.关机
                                                  2.拍照模式主页面
@@ -79,7 +79,8 @@ i2c_bus10 {
         };
 };
 
-
 配置内核，选中SSD1315为内核加载方式；
 编译内核。
 
+图片文件放在制定目录；
+字体文件放在/usr/share/fonts目录下
