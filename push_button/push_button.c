@@ -1,6 +1,6 @@
 //export PATH=/home/wang/hi3559av_buitroot/buildroot-env/output/host/bin:$PATH
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/host/lib/pkgconfig/:$PATH
-//编译：aarch64-buildroot-linux-gnu-gcc push_button.c button_test.c -o button_test -lpthread `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I/home/wang/hi3559av_buitroot/buildroot-env/output/build/libgpiod-1.4.1/include
+//编译：aarch64-buildroot-linux-gnu-gcc push_button.c -shared -fPIC -o libpushbutton.so -lpthread `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I. -I/home/wang/hi3559av_buitroot/buildroot-env/output/build/libglib2-2.60.7/glib/
 
 #include <push_button.h>
 #include <sys/eventfd.h>
@@ -167,7 +167,7 @@ gpointer button_monitor(gpointer data)
     guint release_id = 0;
     ButtonState button_state;
     struct gpiod_line_event evt;   //事件发生后，存储事件结果的结构体
-    GPollFD fds[2];
+    GPollFD fds[2] = {0};
 
     g_mutex_init(&button_mutex);
     event_fd = eventfd(0, EFD_SEMAPHORE);
