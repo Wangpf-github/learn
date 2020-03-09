@@ -1,6 +1,12 @@
 //aarch64-buildroot-linux-gnu-gcc led_test.c -o led_test `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I. -L. -lled
 
 #include <led_light.h>
+#include <led_light.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 LedLight *led1, *led2;
 struct gpiod_line *gpio_line1;

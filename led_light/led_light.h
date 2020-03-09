@@ -3,11 +3,6 @@
 
 #include <glib-object.h>
 #include <glib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
 #include <gpiod.h>
 
 #define TYPE_LED_LIGHT (led_light_get_type())

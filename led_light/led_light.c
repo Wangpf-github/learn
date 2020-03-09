@@ -3,6 +3,11 @@
 //编译：aarch64-buildroot-linux-gnu-gcc led_light.c -shared -fPIC -o libled.so `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I.
 
 #include <led_light.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 #define LED_LIGHT_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), TYPE_LED_LIGHT, LedLightPrivate)
 typedef struct gpiod_line GpiodLine;
