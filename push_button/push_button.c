@@ -2,9 +2,16 @@
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/host/lib/pkgconfig/:$PATH
 //编译：aarch64-buildroot-linux-gnu-gcc push_button.c button_test.c -o button_test -lpthread `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I/home/wang/hi3559av_buitroot/buildroot-env/output/build/libgpiod-1.4.1/include
 
-#include "push_button.h"
+#include <push_button.h>
+#include <sys/eventfd.h>
+#include <unistd.h>
+#include <gpoll.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
-#define PUSH_BUTTON_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), PUSH_TYPE_BUTTON, PushButtonPrivate)
+#define PUSH_BUTTON_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), TYPE_PUSH_BUTTON, PushButtonPrivate)
 
 typedef struct _PushButtonPrivate
 {
@@ -18,7 +25,6 @@ G_DEFINE_TYPE_WITH_CODE (PushButton, push_button, G_TYPE_OBJECT, G_ADD_PRIVATE (
 
 static PushButtonPrivate *priv;
 static gint timeout_count;
-static GMutex button_mutex;
 static gint event_fd;
 
 enum
@@ -33,23 +39,22 @@ enum
 
 gpointer button_monitor(gpointer data);
 
-static void push_button_dispose (GObject *gobject)
+static void push_button_dispose(GObject *gobject)
 {
-    PushButton *self = PUSH_BUTTON (gobject);
-    priv = PUSH_BUTTON_GET_PRIVATE (self);
+    PushButton *self = PUSH_BUTTON(gobject);
+    priv = PUSH_BUTTON_GET_PRIVATE(self);
 
-    G_OBJECT_CLASS (push_button_parent_class)->dispose (gobject);
+    G_OBJECT_CLASS(push_button_parent_class)->dispose(gobject);
 }
  
-static void push_button_finalize (GObject *gobject)
+static void push_button_finalize(GObject *gobject)
 {       
-    PushButton *self = PUSH_BUTTON (gobject);
-    priv = PUSH_BUTTON_GET_PRIVATE (self);
-    g_mutex_clear(&button_mutex);
+    PushButton *self = PUSH_BUTTON(gobject);
+    priv = PUSH_BUTTON_GET_PRIVATE(self);
     write(event_fd, "thread flag event", 18);
     close(event_fd);
 
-    G_OBJECT_CLASS (push_button_parent_class)->finalize (gobject);
+    G_OBJECT_CLASS(push_button_parent_class)->finalize(gobject);
 }
 
 static void push_button_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
@@ -118,7 +123,7 @@ static void push_button_class_init(PushButtonClass *pclass)
 
     g_object_class_install_properties(base_class, N_PROPERTY, properties);
 
-    g_signal_new("button_event",
+    g_signal_new("button-event",
 			     G_TYPE_FROM_CLASS(pclass),
 			     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS,
 			     0,
@@ -138,26 +143,16 @@ static void push_button_init(PushButton *self)
 
 gboolean release_timeout_start(gpointer data)   //松开状态计时
 {
-    if (priv->state == BUTTON_STATE_PRESSED)
-    {
-        return FALSE;
-    }
-    
     timeout_count++;
-    g_signal_emit_by_name(data, "button_event", BUTTON_EVENT_RELEASE, timeout_count);
+    g_signal_emit_by_name(data, "button-event", BUTTON_EVENT_RELEASE, timeout_count);
 
     return TRUE;
 }
 
 gboolean press_timeout_start(gpointer data)    //按下状态计时
 {
-    if(priv->state == BUTTON_STATE_RELEASED)
-    {
-        return FALSE;
-    }
-
     timeout_count++;
-    g_signal_emit_by_name(data, "button_event", BUTTON_EVENT_PRESS, timeout_count);
+    g_signal_emit_by_name(data, "button-event", BUTTON_EVENT_PRESS, timeout_count);
     
     return TRUE;
 }
@@ -165,6 +160,7 @@ gboolean press_timeout_start(gpointer data)    //按下状态计时
 gpointer button_monitor(gpointer data)
 {
     gint button_fd;
+    static GMutex button_mutex;
     int ret, poll_ret;
     gint last_event = 0;
     guint press_id = 0;
@@ -187,7 +183,7 @@ gpointer button_monitor(gpointer data)
         fds[1].fd = button_fd;
         fds[1].events = G_IO_IN | G_IO_HUP | G_IO_ERR;
 
-        poll_ret = g_poll(fds, 2, -1);
+        poll_ret = g_poll(fds, 2, -1);   //阻塞轮询两个fd
         if(poll_ret > 0)
         {
             if(fds[1].revents & G_IO_IN)
@@ -198,61 +194,63 @@ gpointer button_monitor(gpointer data)
                     perror("gpiod_line_event_read_fd");
                     continue;
                 }
-                if(ret == 0)
+                if(ret == 0)    //读取寄存器正确
                 {
-                    if(evt.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
+                    if(evt.event_type == GPIOD_LINE_EVENT_RISING_EDGE)   //检测到上升沿
                     {
-                        if(last_event == GPIOD_LINE_EVENT_RISING_EDGE)
+                        if(last_event == GPIOD_LINE_EVENT_RISING_EDGE)   //防抖检测
                             continue;
 
                         last_event = GPIOD_LINE_EVENT_RISING_EDGE;
                         button_state = BUTTON_STATE_RELEASED;
                         g_object_set(G_OBJECT(data), "state", button_state, NULL);
+                        
+                        if(press_id > 0)    //关闭按下状态超时检测
+                        {
+                            g_source_remove(press_id);
+                        }
 
                         g_mutex_lock(&button_mutex);
                         timeout_count = 0;
-                        g_signal_emit_by_name(data, "button_event", BUTTON_EVENT_RELEASE, timeout_count);
+                        g_signal_emit_by_name(data, "button-event", BUTTON_EVENT_RELEASE, timeout_count);
                         g_mutex_unlock(&button_mutex);
 
                         if (priv->ReleaseTimeout < 1)
                         {
-                            printf("Release timeout function close!\n");
+                            g_print("Release timeout function close!\n");
                             continue;
                         }
                         release_id = g_timeout_add(priv->ReleaseTimeout * 1000, release_timeout_start, data); 
-                        if(press_id > 0)
-                        {
-                            g_source_remove(press_id);
-                        }
                     }
-                    else
+                    else     //检测到下降沿
                     {
-                        if(last_event == GPIOD_LINE_EVENT_FALLING_EDGE)
+                        if(last_event == GPIOD_LINE_EVENT_FALLING_EDGE)   //防抖检测
                             continue;
 
                         last_event = GPIOD_LINE_EVENT_FALLING_EDGE;
                         button_state = BUTTON_STATE_PRESSED;
                         g_object_set(G_OBJECT(data), "state", button_state, NULL);
 
+                        if(release_id > 0)    //关闭松开状态超时检测
+                        {
+                            g_source_remove(release_id);
+                        }
+
                         g_mutex_lock(&button_mutex);
                         timeout_count = 0;
-                        g_signal_emit_by_name(data, "button_event", BUTTON_EVENT_PRESS, timeout_count);
+                        g_signal_emit_by_name(data, "button-event", BUTTON_EVENT_PRESS, timeout_count);
                         g_mutex_unlock(&button_mutex);
 
                         if (priv->PressTimeout < 1)
                         {
-                            printf("Press timeout function close!\n");
+                            g_print("Press timeout function close!\n");
                             continue;
                         }
                         press_id = g_timeout_add(priv->PressTimeout * 1000, press_timeout_start, data); 
-                        if(release_id > 0)
-                        {
-                            g_source_remove(release_id);
-                        }
                     }
                 }
             }
-            else if(fds[0].revents & G_IO_IN)
+            else if(fds[0].revents & G_IO_IN)   //检测到event_fd有变化，结束循环，线程退出
             {
                 break;
             }
@@ -262,6 +260,8 @@ gpointer button_monitor(gpointer data)
             continue;
         }
     }
-    printf("Button thread exit!\n");
+
+    g_print("Button monitor thread exit!\n");
+    g_mutex_clear(&button_mutex);
     g_thread_exit(NULL);
 }

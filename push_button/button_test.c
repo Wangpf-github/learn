@@ -47,12 +47,12 @@ int main()
 
     gpiod_line_request_output(gpio_led, "gpio-test2", GPIOD_LINE_ACTIVE_STATE_LOW);
 
-    bu = g_object_new(PUSH_TYPE_BUTTON, "gpio", gpio_button, 
+    bu = g_object_new(TYPE_PUSH_BUTTON, "gpio", gpio_button, 
                                         "ReleaseTimeout", 1,
                                         "PressTimeout", 1,
                                         NULL);
 
-    g_signal_connect(bu, "button_event", G_CALLBACK (judeg_button_event), NULL);
+    g_signal_connect(bu, "button-event", G_CALLBACK (judeg_button_event), NULL);
 
     g_timeout_add(1000, button_test, bu);
 
