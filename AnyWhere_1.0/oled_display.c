@@ -14,11 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define OLED_SCREEN_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), TYPE_OLED_SCREEN, OledScreenPrivate)
+#define OLED_DISPLAY_GET_PRIVATE(object) G_TYPE_INSTANCE_GET_PRIVATE((object), TYPE_OLED_DISPLAY, OledDisplayPrivate)
 #define WIDTH  (128)
 #define HIGH   (64)
 
-typedef struct _OledScreenPrivate
+typedef struct _OledDisplayPrivate
 {
     guint interface;
     GList *JpegList;  
@@ -47,14 +47,14 @@ typedef struct _OledScreenPrivate
     gchar *LiveFramerate;         //直播模式帧率： 15FPS/20FPS/25FPS/30PFS/60FPS
 
     gchar *ImagePath;                //图片加载路径
-}OledScreenPrivate;
+}OledDisplayPrivate;
 
-G_DEFINE_TYPE_WITH_CODE (OledScreen, oled_screen, G_TYPE_OBJECT, G_ADD_PRIVATE (OledScreen))
+G_DEFINE_TYPE_WITH_CODE (OledDisplay, oled_display, G_TYPE_OBJECT, G_ADD_PRIVATE (OledDisplay))
 
 /* 全局变量 */
 cairo_surface_t *surface;
 gchar *image_route;
-OledScreenPrivate *priv;
+OledDisplayPrivate *priv;
 int fbfd = 0;
 char *fbp;
 
@@ -88,8 +88,8 @@ enum
 
 enum IS_SELECTED
 {
-    SELECT_NO,
-    SELECT_YES
+    OLED_SELECT_NO,
+    OLED_SELECT_YES
 };
 
 /* 函数声明 */
@@ -118,29 +118,29 @@ static void judge_jpeg_state(gpointer data);
 static void judge_mp4_state(gpointer data);
 static void judge_live_state(gpointer data);
 
-static void oled_screen_dispose (GObject *gobject)
+static void oled_display_dispose (GObject *gobject)
 {
-        OledScreen *self = OLED_SCREEN (gobject);
-        priv = OLED_SCREEN_GET_PRIVATE (self);
+        OledDisplay *self = OLED_DISPLAY (gobject);
+        priv = OLED_DISPLAY_GET_PRIVATE (self);
 
-        G_OBJECT_CLASS (oled_screen_parent_class)->dispose (gobject);
+        G_OBJECT_CLASS (oled_display_parent_class)->dispose (gobject);
 }
  
-static void oled_screen_finalize (GObject *gobject)
+static void oled_display_finalize (GObject *gobject)
 {       
-        OledScreen *self        = OLED_SCREEN (gobject);
-        priv = OLED_SCREEN_GET_PRIVATE (self);
+        OledDisplay *self        = OLED_DISPLAY (gobject);
+        priv = OLED_DISPLAY_GET_PRIVATE (self);
         cairo_surface_destroy(surface);
         munmap(fbp, (WIDTH * HIGH / 8));
         close(fbfd);
 
-        G_OBJECT_CLASS (oled_screen_parent_class)->finalize (gobject);
+        G_OBJECT_CLASS (oled_display_parent_class)->finalize (gobject);
 }
 
-static void oled_screen_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
+static void oled_display_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-    OledScreen *self = OLED_SCREEN(object);
-    priv = OLED_SCREEN_GET_PRIVATE(self);
+    OledDisplay *self = OLED_DISPLAY(object);
+    priv = OLED_DISPLAY_GET_PRIVATE(self);
 
     switch (property_id)
     {
@@ -218,10 +218,10 @@ static void oled_screen_set_property(GObject *object, guint property_id, const G
     }
 }
 
-static void oled_screen_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+static void oled_display_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-    OledScreen *self = OLED_SCREEN(object);
-    priv = OLED_SCREEN_GET_PRIVATE(self);
+    OledDisplay *self = OLED_DISPLAY(object);
+    priv = OLED_DISPLAY_GET_PRIVATE(self);
 
     switch (property_id)
     {
@@ -299,13 +299,13 @@ static void oled_screen_get_property(GObject *object, guint property_id, GValue 
     }
 }
 
-static void oled_screen_class_init(OledScreenClass *kclass)
+static void oled_display_class_init(OledDisplayClass *kclass)
 {
     GObjectClass *base_class = G_OBJECT_CLASS(kclass);
-    base_class->get_property = oled_screen_get_property;
-    base_class->set_property = oled_screen_set_property;
-    base_class->dispose      = oled_screen_dispose;
-    base_class->finalize     = oled_screen_finalize;
+    base_class->get_property = oled_display_get_property;
+    base_class->set_property = oled_display_set_property;
+    base_class->dispose      = oled_display_dispose;
+    base_class->finalize     = oled_display_finalize;
 
     GParamSpec *properties[N_PROPERTY] = {NULL, };
     properties[PROPERTY_INTERFACE] = g_param_spec_uint("interface", "Interface", "Which interface to show", 0, G_MAXUINT32, 0, G_PARAM_READWRITE);
@@ -317,7 +317,7 @@ static void oled_screen_class_init(OledScreenClass *kclass)
     properties[PROPERTY_INTERFACE_SELECT] = g_param_spec_int("InterfaceSelect", NULL, NULL, -2, G_MAXINT32, 0, G_PARAM_READWRITE);
     properties[PROPERTY_NETWORK_MODE] = g_param_spec_uint("NetworkMode", NULL, NULL, 0, G_MAXUINT32, 0, G_PARAM_READWRITE);
     properties[PROPERTY_IPADDR] = g_param_spec_pointer("IPaddr", NULL, NULL,G_PARAM_READWRITE);
-    properties[PROPERTY_BATTERY] = g_param_spec_uint("battery", NULL, NULL, 0, G_MAXUINT32, BATTERY_100, G_PARAM_READWRITE);
+    properties[PROPERTY_BATTERY] = g_param_spec_uint("battery", NULL, NULL, 0, G_MAXUINT32, OLED_BATTERY_100, G_PARAM_READWRITE);
     properties[PROPERTY_JPEG_DISK_SPACE] = g_param_spec_pointer("JpegDiskSpace", NULL, NULL, G_PARAM_READWRITE);
     properties[PROPERTY_JPEG_RESOLUTION] = g_param_spec_pointer("JpegResolution", NULL, NULL, G_PARAM_READWRITE);
     properties[PROPERTY_JPEG_SHOOT] = g_param_spec_pointer("JpegShootMode", NULL, NULL, G_PARAM_READWRITE);
@@ -335,7 +335,7 @@ static void oled_screen_class_init(OledScreenClass *kclass)
     g_object_class_install_properties(base_class, N_PROPERTY, properties);
 }
 
-static void oled_screen_init(OledScreen *self)
+static void oled_display_init(OledDisplay *self)
 {
     oled_start(self);
     g_signal_connect (self, "notify::interface", G_CALLBACK(judge_interface), NULL);     //采用信号机制，收到信号调用show_jpeg_mode
@@ -369,40 +369,40 @@ static void judge_interface(gpointer data)
 
     switch (value)
     {
-    case CAMERA_SHUTDOWN:
+    case OLED_CAMERA_SHUTDOWN:
         oled_shutdown();
         break;
-    case JPEG_MAIN:
-        show_main(data, WORKMODE_JPEG);
+    case OLED_JPEG_MAIN:
+        show_main(data, OLED_WORKMODE_JPEG);
         break;
-    case JPEG_STATE:
+    case OLED_JPEG_STATE:
         show_jpeg_state(data);
         break;
-    case JPEG_SETTING:
+    case OLED_JPEG_SETTING:
         show_jpeg_setting(data);
         break;
-    case MP4_MAIN:
-        show_main(data, WORKMODE_MP4);
+    case OLED_MP4_MAIN:
+        show_main(data, OLED_WORKMODE_MP4);
         break;
-    case MP4_STATE:
+    case OLED_MP4_STATE:
         show_mp4_state(data);
         break;
-    case MP4_SETTING:
+    case OLED_MP4_SETTING:
         show_mp4_setting(data);
         break;
-    case LIVE_MAIN:
-        show_main(data, WORKMODE_LIVE);
+    case OLED_LIVE_MAIN:
+        show_main(data, OLED_WORKMODE_LIVE);
         break;
-    case LIVE_STATE:
+    case OLED_LIVE_STATE:
         show_live_state(data);
         break;
-    case LIVE_SETTING:
+    case OLED_LIVE_SETTING:
         show_live_setting(data);
         break;
-    case SYS_MAIN:
-        show_main(data, WORKMODE_SETTING);
+    case OLED_SYS_MAIN:
+        show_main(data, OLED_WORKMODE_SETTING);
         break;
-    case SYS_SETTING:
+    case OLED_SYS_SETTING:
         show_sys_setting(data);
         break;
 
@@ -426,14 +426,14 @@ static void judge_navigat(gpointer data)
     g_object_get(G_OBJECT(data), "interface", &value, NULL);
     switch (value)
     {
-    case JPEG_MAIN:
-    case JPEG_STATE:
-    case MP4_MAIN:
-    case MP4_STATE:
-    case LIVE_MAIN:
-    case LIVE_STATE:
-    case SYS_MAIN:
-    case SYS_SETTING:
+    case OLED_JPEG_MAIN:
+    case OLED_JPEG_STATE:
+    case OLED_MP4_MAIN:
+    case OLED_MP4_STATE:
+    case OLED_LIVE_MAIN:
+    case OLED_LIVE_STATE:
+    case OLED_SYS_MAIN:
+    case OLED_SYS_SETTING:
         g_object_set(G_OBJECT(data), "interface", value, NULL);
         break;
 
@@ -447,7 +447,7 @@ static void judge_jpeg_state(gpointer data)
 {
     gint value;
     g_object_get(G_OBJECT(data), "interface", &value, NULL);
-    if (JPEG_STATE == value)
+    if (OLED_JPEG_STATE == value)
         g_object_set(G_OBJECT(data), "interface", value, NULL);
     return;
 }
@@ -456,7 +456,7 @@ static void judge_mp4_state(gpointer data)
 {
     gint value;
     g_object_get(G_OBJECT(data), "interface", &value, NULL);
-    if (MP4_STATE == value)
+    if (OLED_MP4_STATE == value)
         g_object_set(G_OBJECT(data), "interface", value, NULL);
     return;
 }
@@ -465,7 +465,7 @@ static void judge_live_state(gpointer data)
 {
     gint value;
     g_object_get(G_OBJECT(data), "interface", &value, NULL);
-    if (LIVE_STATE == value)
+    if (OLED_LIVE_STATE == value)
         g_object_set(G_OBJECT(data), "interface", value, NULL);
     return;
 }
@@ -580,7 +580,7 @@ gint show_jpeg_state(gpointer data)
 	cairo_stroke(cr9);
     cairo_surface_t *image1 = cairo_image_surface_create_from_png (get_network_image_url(data));
 	cairo_surface_t *image2 = cairo_image_surface_create_from_png (get_battery_image_url(data));
-	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
+	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_JPEG, OLED_SELECT_NO));
     cairo_set_source_surface (cr1, image1, 1, 4);
     cairo_set_source_surface (cr2, image2, 108, 5);
     cairo_set_source_surface (cr3, image3, 4, 25);
@@ -696,8 +696,8 @@ gint show_jpeg_setting(gpointer data)  //包含拍照模式，连拍间隔，采
     switch (select)
     {
     case -1:
-        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_YES));
-        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_YES));
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_JPEG, OLED_SELECT_YES));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_YES));
         cairo_set_source_surface (cr1, image1, 47, 0);
         cairo_set_source_surface (cr2, image2, 73, 0);
         cairo_rectangle (cr6, 0, 0, 47, 28);
@@ -710,9 +710,9 @@ gint show_jpeg_setting(gpointer data)  //包含拍照模式，连拍间隔，采
         cairo_fill(cr6);
         cairo_stroke(cr6);
         break;
-    case SELECT_FIRST:
-        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
-        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+    case OLED_SELECT_FIRST:
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_JPEG, OLED_SELECT_NO));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
         cairo_set_source_surface (cr1, image1, 47, 6);
         cairo_set_source_surface (cr2, image2, 73, 7);
         cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -720,9 +720,9 @@ gint show_jpeg_setting(gpointer data)  //包含拍照模式，连拍间隔，采
         cairo_stroke(cr7);
     	cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
         break;
-    case SELECT_SECOND:
-        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
-        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+    case OLED_SELECT_SECOND:
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_JPEG,OLED_SELECT_NO));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
         cairo_set_source_surface (cr1, image1, 47, 6);
         cairo_set_source_surface (cr2, image2, 73, 7);
         cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -730,9 +730,9 @@ gint show_jpeg_setting(gpointer data)  //包含拍照模式，连拍间隔，采
         cairo_stroke(cr7);
         cairo_set_operator(cr4, CAIRO_OPERATOR_CLEAR);
         break;
-    case SELECT_THIRD:
-        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_JPEG, SELECT_NO));
-        image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+    case OLED_SELECT_THIRD:
+        image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_JPEG, OLED_SELECT_NO));
+        image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
         cairo_set_source_surface (cr1, image1, 47, 6);
         cairo_set_source_surface (cr2, image2, 73, 7);
         cairo_rectangle (cr7, 0, 50, 128, 12);
@@ -793,7 +793,7 @@ gint show_mp4_state(gpointer data)
 	cairo_stroke(cr9);
     cairo_surface_t *image1 = cairo_image_surface_create_from_png (get_network_image_url(data));
 	cairo_surface_t *image2 = cairo_image_surface_create_from_png (get_battery_image_url(data));
-	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_NO));
+	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_NO));
     cairo_set_source_surface (cr1, image1, 1, 4);
     cairo_set_source_surface (cr2, image2, 108, 5);
     cairo_set_source_surface (cr3, image3, 4, 25);
@@ -888,8 +888,8 @@ gint show_mp4_setting(gpointer data)
         switch (select)
         {
         case -1:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_YES));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_YES));
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_YES));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_YES));
             cairo_set_source_surface (cr1, image1, 47, 0);
             cairo_set_source_surface (cr2, image2, 73, 0);
             cairo_rectangle (cr6, 0, 0, 47, 28);
@@ -902,9 +902,9 @@ gint show_mp4_setting(gpointer data)
             cairo_fill(cr6);
             cairo_stroke(cr6);
             break;
-        case SELECT_FIRST:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FIRST:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -912,9 +912,9 @@ gint show_mp4_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_SECOND:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_SECOND:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -922,9 +922,9 @@ gint show_mp4_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr4, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_THIRD:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_THIRD:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 50, 128, 12);
@@ -943,9 +943,9 @@ gint show_mp4_setting(gpointer data)
         item2 = (gchar *)g_list_nth_data(list, 4);
         switch (select)
         {
-        case SELECT_FOURTH:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FOURTH:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -953,9 +953,9 @@ gint show_mp4_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_FIFTH:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_MP4, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FIFTH:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_MP4, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -1021,7 +1021,7 @@ gint show_live_state(gpointer data)
 	cairo_stroke(cr9);
     cairo_surface_t *image1 = cairo_image_surface_create_from_png (get_network_image_url(data));
 	cairo_surface_t *image2 = cairo_image_surface_create_from_png (get_battery_image_url(data));
-	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_NO));
+	cairo_surface_t *image3 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_NO));
     cairo_set_source_surface (cr1, image1, 1, 4);
     cairo_set_source_surface (cr2, image2, 108, 5);
     cairo_set_source_surface (cr3, image3, 4, 25);
@@ -1140,8 +1140,8 @@ gint show_live_setting(gpointer data)
         switch (select)
         {
         case -1:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_YES));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_YES));
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_YES));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_YES));
             cairo_set_source_surface (cr1, image1, 47, 0);
             cairo_set_source_surface (cr2, image2, 73, 0);
             cairo_rectangle (cr6, 0, 0, 47, 28);
@@ -1154,9 +1154,9 @@ gint show_live_setting(gpointer data)
             cairo_fill(cr6);
             cairo_stroke(cr6);
             break;
-        case SELECT_FIRST:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FIRST:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -1164,9 +1164,9 @@ gint show_live_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_SECOND:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_SECOND:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -1174,9 +1174,9 @@ gint show_live_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr4, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_THIRD:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_THIRD:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 50, 128, 12);
@@ -1195,9 +1195,9 @@ gint show_live_setting(gpointer data)
         item2 = (gchar *)g_list_nth_data(list, 4);
         switch (select)
         {
-        case SELECT_FOURTH:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FOURTH:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -1205,9 +1205,9 @@ gint show_live_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_FIFTH:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_LIVE, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FIFTH:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_LIVE, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -1297,8 +1297,8 @@ gint show_sys_setting(gpointer data)
         switch (select)
         {
         case -1:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_SETTING, SELECT_YES));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_YES));
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_SETTING, OLED_SELECT_YES));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_YES));
             cairo_set_source_surface (cr1, image1, 47, 0);
             cairo_set_source_surface (cr2, image2, 73, 0);
             cairo_rectangle (cr6, 0, 0, 47, 28);
@@ -1311,9 +1311,9 @@ gint show_sys_setting(gpointer data)
             cairo_fill(cr6);
             cairo_stroke(cr6);
             break;
-        case SELECT_FIRST:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_SETTING, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FIRST:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_SETTING, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -1321,9 +1321,9 @@ gint show_sys_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_SECOND:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_SETTING, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_SECOND:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_SETTING, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -1331,9 +1331,9 @@ gint show_sys_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr4, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_THIRD:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_SETTING, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_THIRD:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_SETTING, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 50, 128, 12);
@@ -1352,9 +1352,9 @@ gint show_sys_setting(gpointer data)
         item2 = (gchar *)g_list_nth_data(list, 4);
         switch (select)
         {
-        case SELECT_FOURTH:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_SETTING, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FOURTH:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_SETTING, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 26, 128, 12);
@@ -1362,9 +1362,9 @@ gint show_sys_setting(gpointer data)
             cairo_stroke(cr7);
             cairo_set_operator(cr3, CAIRO_OPERATOR_CLEAR);
             break;
-        case SELECT_FIFTH:
-            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(WORKMODE_SETTING, SELECT_NO));
-            image2 = cairo_image_surface_create_from_png (get_angle_url(SELECT_NO));
+        case OLED_SELECT_FIFTH:
+            image1 = cairo_image_surface_create_from_png (get_work_mode_image_small_url(OLED_WORKMODE_SETTING, OLED_SELECT_NO));
+            image2 = cairo_image_surface_create_from_png (get_angle_url(OLED_SELECT_NO));
             cairo_set_source_surface (cr1, image1, 47, 6);
             cairo_set_source_surface (cr2, image2, 73, 7);
             cairo_rectangle (cr7, 0, 38, 128, 12);
@@ -1413,11 +1413,11 @@ gchar *get_network_image_url(gpointer data)
     guint net_value;
     static gchar net_buf[100] = {0};
     g_object_get(G_OBJECT (data), "NetworkMode", &net_value, NULL);
-    if (NETWORK_WIRE == net_value)
+    if (OLED_NETWORK_WIRE == net_value)
     {
         sprintf(net_buf, "%s/anywhere_picture/fittings/net_wire.png", image_route);
     }
-    else if(NETWORK_WIFI == net_value)
+    else if(OLED_NETWORK_WIFI == net_value)
     {
         sprintf(net_buf, "%s/anywhere_picture/fittings/net_wifi.png", image_route);
     }
@@ -1431,46 +1431,46 @@ gchar *get_battery_image_url(gpointer data)
     g_object_get(G_OBJECT (data), "battery", &battery_value, NULL);
     switch (battery_value)
     {
-    case BATTERY_LESS_THAN_5:
+    case OLED_BATTERY_LESS_THAN_5:
         sprintf(battery_buf, "%s/anywhere_picture/battery/less5.png", image_route);
         break;
-    case BATTERY_10:
+    case OLED_BATTERY_10:
         sprintf(battery_buf, "%s/anywhere_picture/battery/10.png", image_route);
         break;
-    case BATTERY_20:
+    case OLED_BATTERY_20:
         sprintf(battery_buf, "%s/anywhere_picture/battery/20.png", image_route);
         break;
-    case BATTERY_40:
+    case OLED_BATTERY_40:
         sprintf(battery_buf, "%s/anywhere_picture/battery/40.png", image_route);
         break;
-    case BATTERY_60:
+    case OLED_BATTERY_60:
         sprintf(battery_buf, "%s/anywhere_picture/battery/60.png", image_route);
         break;
-    case BATTERY_80:
+    case OLED_BATTERY_80:
         sprintf(battery_buf, "%s/anywhere_picture/battery/80.png", image_route);
         break;
-    case BATTERY_100:
+    case OLED_BATTERY_100:
         sprintf(battery_buf, "%s/anywhere_picture/battery/100.png", image_route);
         break;
-    case BATTERY_P_0:
+    case OLED_BATTERY_P_0:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_0.png", image_route);
         break;
-    case BATTERY_P_10:
+    case OLED_BATTERY_P_10:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_10.png", image_route);
         break;
-    case BATTERY_P_20:
+    case OLED_BATTERY_P_20:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_20.png", image_route);
         break;
-    case BATTERY_P_40:
+    case OLED_BATTERY_P_40:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_40.png", image_route);
         break;
-    case BATTERY_P_60:
+    case OLED_BATTERY_P_60:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_60.png", image_route);
         break;
-    case BATTERY_P_80:
+    case OLED_BATTERY_P_80:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_80.png", image_route);
         break;
-    case BATTERY_P_100:
+    case OLED_BATTERY_P_100:
         sprintf(battery_buf, "%s/anywhere_picture/battery/P_100.png", image_route);
         break;
 
@@ -1485,16 +1485,16 @@ gchar *get_work_mode_image_big_url(gint work_mode)
     static gchar mode_buf[100] = {0};
     switch (work_mode)
     {
-    case WORKMODE_JPEG:
+    case OLED_WORKMODE_JPEG:
         sprintf(mode_buf, "%s/anywhere_picture/fittings/jpeg_l.png", image_route);
         break;
-    case WORKMODE_MP4:
+    case OLED_WORKMODE_MP4:
         sprintf(mode_buf, "%s/anywhere_picture/fittings/mp4_l.png", image_route);
         break;
-    case WORKMODE_LIVE:
+    case OLED_WORKMODE_LIVE:
         sprintf(mode_buf, "%s/anywhere_picture/fittings/live_l.png", image_route);
         break;
-    case WORKMODE_SETTING:
+    case OLED_WORKMODE_SETTING:
         sprintf(mode_buf, "%s/anywhere_picture/fittings/set_l.png", image_route);
         break;
 
@@ -1509,42 +1509,42 @@ gchar *get_work_mode_image_small_url(gint work_mode, gint select_mode)
     static gchar mode_buf[100] = {0};
     switch (work_mode)
     {
-    case WORKMODE_JPEG:
-        if (SELECT_NO == select_mode)
+    case OLED_WORKMODE_JPEG:
+        if (OLED_SELECT_NO == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/jpeg_s.png", image_route);
         }
-        else if (SELECT_YES == select_mode)
+        else if (OLED_SELECT_YES == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/jpeg_s_r.png", image_route);
         }
         break;
-    case WORKMODE_MP4:
-        if (SELECT_NO == select_mode)
+    case OLED_WORKMODE_MP4:
+        if (OLED_SELECT_NO == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/mp4_s.png", image_route);
         }
-        else if (SELECT_YES == select_mode)
+        else if (OLED_SELECT_YES == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/mp4_s_r.png", image_route);
         }
         break;
-    case WORKMODE_LIVE:
-        if (SELECT_NO == select_mode)
+    case OLED_WORKMODE_LIVE:
+        if (OLED_SELECT_NO == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/live_s.png", image_route);
         }
-        else if (SELECT_YES == select_mode)
+        else if (OLED_SELECT_YES == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/live_s_r.png", image_route);
         }
         break;
-    case WORKMODE_SETTING:
-        if (SELECT_NO == select_mode)
+    case OLED_WORKMODE_SETTING:
+        if (OLED_SELECT_NO == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/set_s.png", image_route);
         }
-        else if (SELECT_YES == select_mode)
+        else if (OLED_SELECT_YES == select_mode)
         {
             sprintf(mode_buf, "%s/anywhere_picture/fittings/set_s_r.png", image_route);
         }
@@ -1559,11 +1559,11 @@ gchar *get_work_mode_image_small_url(gint work_mode, gint select_mode)
 gchar *get_angle_url(gint select_mode)
 {
     static gchar angle_buf[100] = {0};
-    if (SELECT_NO == select_mode)
+    if (OLED_SELECT_NO == select_mode)
     {
         sprintf(angle_buf, "%s/anywhere_picture/fittings/angle.png", image_route);
     }
-    else if (SELECT_YES == select_mode)
+    else if (OLED_SELECT_YES == select_mode)
     {
         sprintf(angle_buf, "%s/anywhere_picture/fittings/angle_r.png", image_route);
     }

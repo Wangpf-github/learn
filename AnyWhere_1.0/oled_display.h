@@ -4,84 +4,84 @@
 #include <glib-object.h>
 #include <glib.h>
 
-#define TYPE_OLED_SCREEN (oled_screen_get_type())
-#define OLED_SCREEN(object) G_TYPE_CHECK_INSTANCE_CAST((object), TYPE_OLED_SCREEN, OledScreen)
+#define TYPE_OLED_DISPLAY (oled_display_get_type())
+#define OLED_DISPLAY(object) G_TYPE_CHECK_INSTANCE_CAST((object), TYPE_OLED_DISPLAY, OledDisplay)
 
 /* 结构体 */
-typedef struct _OledScreen
+typedef struct _OledDisplay
 {
     GObject parent;
-}OledScreen;
+}OledDisplay;
 
-typedef struct _OledScreenClass
+typedef struct _OledDisplayClass
 {
     GObjectClass parent_class;
-}OledScreenClass;
+}OledDisplayClass;
 
-GType oled_screen_get_type(void);
+GType oled_display_get_type(void);
 
 /* 枚举类型 */
 enum INTERFACE
 {
-    CAMERA_START = 0,
-    CAMERA_SHUTDOWN,
-    JPEG_MAIN,                 //进入拍照模式主界面
-    JPEG_STATE,                //进入状态显示界面
-    JPEG_SETTING,              //拍照设置页面1
-    MP4_MAIN,
-    MP4_STATE,
-    MP4_SETTING,
-    LIVE_MAIN,
-    LIVE_STATE,
-    LIVE_SETTING,
-    SYS_MAIN,
-    SYS_SETTING            //系统设置主页1
+    OLED_CAMERA_START,
+    OLED_CAMERA_SHUTDOWN,
+    OLED_JPEG_MAIN,                 //进入拍照模式主界面
+    OLED_JPEG_STATE,                //进入状态显示界面
+    OLED_JPEG_SETTING,              //拍照设置页面1
+    OLED_MP4_MAIN,
+    OLED_MP4_STATE,
+    OLED_MP4_SETTING,
+    OLED_LIVE_MAIN,
+    OLED_LIVE_STATE,
+    OLED_LIVE_SETTING,
+    OLED_SYS_MAIN,
+    OLED_SYS_SETTING            //系统设置主页1
 };
 
 enum INTERFACE_SELECT
 {
-    SELECT_FIRST = 0,            
-    SELECT_SECOND,
-    SELECT_THIRD,
-    SELECT_FOURTH,
-    SELECT_FIFTH,
-    SELECT_SIXTH,
-    SELECT_SEVENTH,
-    SELECT_EIGHTH,
-    SELECT_NINETH,
-    SELECT_TENTH
+    OLED_SELECT_FIRST,
+    OLED_SELECT_SECOND,
+    OLED_SELECT_THIRD,
+    OLED_SELECT_FOURTH,
+    OLED_SELECT_FIFTH,
+    OLED_SELECT_SIXTH,
+    OLED_SELECT_SEVENTH,
+    OLED_SELECT_EIGHTH,
+    OLED_SELECT_NINETH,
+    OLED_SELECT_TENTH
 };
 
 enum WORKMODE
 {
-    WORKMODE_JPEG,
-    WORKMODE_MP4,
-    WORKMODE_LIVE,
-    WORKMODE_SETTING
+    OLED_WORKMODE_JPEG,
+    OLED_WORKMODE_MP4,
+    OLED_WORKMODE_LIVE,
+    OLED_WORKMODE_SETTING
 };
 
 enum NETWORK_STATE
 {
-    NETWORK_WIRE,
-    NETWORK_WIFI
+    OLED_NETWORK_WIRE,
+    OLED_NETWORK_WIFI
 };
 
 enum BATTERY_STATE
 {
-    BATTERY_LESS_THAN_5 = 0,
-    BATTERY_10,
-    BATTERY_20,
-    BATTERY_40,
-    BATTERY_60,
-    BATTERY_80,
-    BATTERY_100,
-    BATTERY_P_0,
-    BATTERY_P_10,
-    BATTERY_P_20,
-    BATTERY_P_40,
-    BATTERY_P_60,
-    BATTERY_P_80,
-    BATTERY_P_100
+    OLED_BATTERY_LESS_THAN_5,
+    OLED_BATTERY_10,
+    OLED_BATTERY_20,
+    OLED_BATTERY_40,
+    OLED_BATTERY_60,
+    OLED_BATTERY_80,
+    OLED_BATTERY_100,
+    OLED_BATTERY_P_0,
+    OLED_BATTERY_P_10,
+    OLED_BATTERY_P_20,
+    OLED_BATTERY_P_40,
+    OLED_BATTERY_P_60,
+    OLED_BATTERY_P_80,
+    OLED_BATTERY_P_100
 };
 
 #endif

@@ -34,7 +34,7 @@ int main()
 {
     GMainLoop *loop;
     gint num;
-    OledScreen *oled;
+    OledDisplay *oled;
     GList *list1 = NULL;
     GList *list2 = NULL;
     GList *list3 = NULL;
@@ -60,15 +60,15 @@ int main()
     list4 = g_list_insert(list4, "LAN:DHCP", 2);
     list4 = g_list_insert(list4, "Done", 3);
 
-    oled = g_object_new(TYPE_OLED_SCREEN, "interface",     0, 
+    oled = g_object_new(TYPE_OLED_DISPLAY, "interface",     0, 
                                         "JpegList",        list1,
                                         "VideoList",       list2,
                                         "LiveList",        list3,
                                         "SystemList",      list4,
                                         "InterfaceSelect", 0,
-                                        "NetworkMode",     NETWORK_WIRE,
+                                        "NetworkMode",     OLED_NETWORK_WIRE,
                                         "IPaddr",          "255.255.255.255",
-                                        "battery",          BATTERY_P_100,
+                                        "battery",         OLED_BATTERY_P_100,
                                         "JpegDiskSpace",   "123456789",
                                         "JpegResolution",  "8K",
                                         "JpegShootMode",   "Standard",
