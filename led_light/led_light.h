@@ -10,8 +10,8 @@
 #include <unistd.h>
 #include <gpiod.h>
 
-#define LED_TYPE_LIGHT (led_light_get_type())
-#define LED_LIGHT(object) G_TYPE_CHECK_INSTANCE_CAST((object), LED_TYPE_LIGHT, LedLight)
+#define TYPE_LED_LIGHT (led_light_get_type())
+#define LED_LIGHT(object) G_TYPE_CHECK_INSTANCE_CAST((object), TYPE_LED_LIGHT, LedLight)
 
 typedef struct _LedLight
 {
@@ -22,8 +22,6 @@ typedef struct _LedLightClass
 {
     GObjectClass parent_class;
 }LedLightClass;
-
-GType led_light_get_type(void);
 
 typedef enum _LedState
 {
@@ -36,5 +34,7 @@ typedef enum _LedPattern
     LED_PATTERN_NONE,
     LED_PATTERN_BLINK
 }LedPattern;
+
+GType led_light_get_type(void);
 
 #endif

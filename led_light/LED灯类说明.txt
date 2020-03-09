@@ -1,4 +1,4 @@
-类的property为：
+property：
     GpiodLine *gpio;
     gint state;
     gint pattern;
@@ -7,7 +7,7 @@
     gint BlinkInterval;   //周期：单位ms
     gint BlinkDuration;   //闪烁初始状态持续时间
 
-枚举类型为：
+enum：
 typedef enum _LedState
 {
     LED_STATE_OFF,
@@ -20,11 +20,10 @@ typedef enum _LedPattern
     LED_PATTERN_BLINK
 }LedPattern;
 
-类内接收两个信号：
-notify::state ： 改变led灯状态，收到信号后立即切换对应的状态
-notify::pattern： 收到模式切换到NONE信号时，不动作，保持state状态； 收到模式切换到BLINK信号时，开始闪烁，闪烁结束后发射blink_end事件信号
+signals：
+blink-end：闪烁正常停止或过程中被打断
 
-状态和模式参数设置错误打印错误信息；
+
 blink_duration必须⼩于blink_interval，如果输入错误，打印错误信息；
 
 led_test.c为测试程序
@@ -32,4 +31,5 @@ led_test.c为测试程序
 蓝灯对应SHUB_GPIO0_7，高电平灯亮
 绿灯对应SHUB_GPIO0_6，高电平灯亮
 
-闪烁过程中收到不闪烁的信号后，停止闪烁，状态设定为初始默认状态；
+闪烁过程中被终止闪烁打断，停止闪烁，状态设定为初始默认状态BlinkDefaultState；
+闪烁过程中被另一个闪烁打断，执行新的闪烁，触发blink-end信号。
