@@ -13,9 +13,9 @@ typedef struct _LedLightPrivate
     gint state;
     gint pattern;
     gint BlinkDefaultState;
-    gint BlinkCount;      //周期数量
-    gint BlinkInterval;   //周期：单位ms
-    gint BlinkDuration;   //闪烁初始状态持续时间
+    gint BlinkCount;      //周期数量,单位ms
+    gint BlinkInterval;   //周期,单位ms
+    gint BlinkDuration;   //闪烁初始状态持续时间,单位ms
 }LedLightPrivate;
 
 G_DEFINE_TYPE_WITH_CODE (LedLight, led_light, G_TYPE_OBJECT, G_ADD_PRIVATE (LedLight))
@@ -209,9 +209,9 @@ gboolean blink_default_start(gpointer data)
     {
         led_state = priv->BlinkDefaultState;
         g_object_set(G_OBJECT(data), "state", led_state, NULL);
+        last_pattern_state = LED_PATTERN_NONE;
         g_object_set(G_OBJECT(data), "pattern", led_pattern, NULL);
         g_signal_emit_by_name(data, "blink-end");
-        last_pattern_state = LED_PATTERN_NONE;
         return FALSE;
     }
     
@@ -342,9 +342,9 @@ void judge_led_pattern(gpointer data)
     }
     else if(priv->pattern == LED_PATTERN_NONE)
     {
-        g_object_set(G_OBJECT(data), "state", priv->state, NULL);
         if(last_pattern_state == LED_PATTERN_BLINK)   //检测上次闪烁状态
         {
+            g_object_set(G_OBJECT(data), "state", priv->BlinkDefaultState, NULL);
             g_signal_emit_by_name(data, "blink-end");
             last_pattern_state = LED_PATTERN_NONE;
         }

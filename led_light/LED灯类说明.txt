@@ -1,11 +1,11 @@
 property：
-    GpiodLine *gpio;
+    GpiodLine *gpio;      //已经初始化好的struct gpiod_line结构体指针
     gint state;
     gint pattern;
     gint BlinkDefaultState;
-    gint BlinkCount;      //周期数量
-    gint BlinkInterval;   //周期：单位ms
-    gint BlinkDuration;   //闪烁初始状态持续时间
+    gint BlinkCount;      //周期数量,单位ms
+    gint BlinkInterval;   //周期,单位ms
+    gint BlinkDuration;   //闪烁初始状态持续时间,单位ms
 
 enum：
 typedef enum _LedState

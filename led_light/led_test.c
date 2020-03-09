@@ -24,6 +24,13 @@ gboolean led_timeout_test(gpointer param)
     if(i == 6)
     {
         g_object_set(G_OBJECT(led1), "pattern", LED_PATTERN_NONE, NULL);
+#if 0
+        g_object_set(G_OBJECT(led1), "BlinkDefaultState", LED_PATTERN_BLINK,
+                                     "BlinkCount", 30,
+                                     "BlinkInterval", 400,
+                                     "BlinkDuration", 200,
+                                     NULL);
+#endif
     }
     printf("------------------\n");
     return TRUE;
