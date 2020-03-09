@@ -1,6 +1,6 @@
 //export PATH=/home/wang/hi3559av_buitroot/buildroot-env/output/host/bin:$PATH
 //export PKG_CONFIG_PATH=/home/linux/git/buildroot-env/output/host/lib/pkgconfig/:$PATH
-//编译：aarch64-buildroot-linux-gnu-gcc led_light.c -shared -fPIC -o libled.so `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I.
+//编译：aarch64-buildroot-linux-gnu-gcc led_light.c -shared -fPIC -o libled_light.so `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I.
 
 #include <led_light.h>
 #include <stdio.h>

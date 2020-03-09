@@ -1,4 +1,4 @@
-//aarch64-buildroot-linux-gnu-gcc led_test.c -o led_test `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I. -L. -lled
+//aarch64-buildroot-linux-gnu-gcc led_test.c -o led_test `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I. -L. -lled_light
 
 #include <led_light.h>
 #include <led_light.h>

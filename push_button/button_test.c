@@ -1,5 +1,5 @@
-//编译：aarch64-buildroot-linux-gnu-gcc button_test.c -o button_test -lpthread `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I. -L. -lpushbutton
-///home/wang/hi3559av_buitroot/buildroot-env/output/build/libgpiod-1.4.1/include
+//aarch64-buildroot-linux-gnu-gcc button_test.c -o button_test -lpthread `pkg-config --cflags --libs glib-2.0 gobject-2.0 libgpiod` -I. -L. -lpush_button
+
 #include <push_button.h>
 #include <stdio.h>
 #include <string.h>
