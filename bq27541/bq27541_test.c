@@ -118,8 +118,8 @@ int main()
                                             "TempAlertMin",     50, 
                                             NULL);
 
-    g_signal_connect(bq, "buttery-alert", G_CALLBACK (judeg_battery_event), NULL);
-    g_signal_connect(bq, "buttery-level", G_CALLBACK (judeg_battery_level), NULL);
+    g_signal_connect(bq, "battery-alert", G_CALLBACK (judeg_battery_event), NULL);
+    g_signal_connect(bq, "battery-level", G_CALLBACK (judeg_battery_level), NULL);
 
     g_timeout_add(1000, battery_test, bq);
 
