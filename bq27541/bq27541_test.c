@@ -98,6 +98,9 @@ gboolean battery_test(gpointer bq)
     case BATTERY_CAPACITY_LEVEL_CRITICAL:
         printf("Level is critical\n");
         break;
+    case BATTERY_CAPACITY_LEVEL_UNKNOWN:
+        printf("Level is UNKNOWN\n");
+        break;
     
     default:
         break;
